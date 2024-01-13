@@ -15,27 +15,4 @@ export class AppController {
     private authService: AuthService
   ) { }
 
-  @Get()
-  @Render("home")
-  handleHomePage() {
-    console.log(">> check port: ", this.configService.get<string>("PORT"))
-    const message = this.appService.getHello();
-    return {
-      message: message
-    }
-    //return this.appService.getHello();
-  }
-
-  @Public()
-  @UseGuards(LocalAuthGuard)
-  @Post('/login')
-  handleLogin(@Request() req) {
-    return this.authService.login(req.user);
-  }
-
-  //@UseGuards(JwtAuthGuard)
-  @Get('profile')
-  getProfile(@Request() req) {
-    return req.user;
-  }
 }
