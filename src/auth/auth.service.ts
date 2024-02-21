@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { UsersService } from 'src/users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { IUser } from 'src/users/user.interface';
+import { RegisterUserDto } from 'src/users/dto/create-user.dto';
+import { genSaltSync, hashSync } from 'bcryptjs';
 
 @Injectable()
 export class AuthService {
     constructor(
         private usersService: UsersService,
-        private jwtService: JwtService
+        private jwtService: JwtService,
     ) { }
 
     async validateUser(username: string, pass: string): Promise<any> {
@@ -37,6 +39,20 @@ export class AuthService {
             name,
             email,
             role
+        };
+    }
+
+    getHashPassword = (password: string) => {
+        var salt = genSaltSync(10);
+        var hash = hashSync(password, salt);
+        return hash;
+    }
+
+    async register(registerUser: RegisterUserDto) {
+        let newUser = await this.usersService.register(registerUser)
+        return {
+            _id: newUser?._id,
+            createdAt: newUser?.createdAt
         };
     }
 }
