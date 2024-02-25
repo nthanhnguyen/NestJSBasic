@@ -1,9 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { IUser } from './user.interface';
-import { ResponseMessage, User } from 'src/auth/decorator/customize';
+import { Public, ResponseMessage, User } from 'src/auth/decorator/customize';
 
 @Controller('users')
 export class UsersController {
@@ -21,11 +21,22 @@ export class UsersController {
     };
   }
 
+  // @Get()
+  // findAll() {
+  //   return this.usersService.findAll();
+  // }
+
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @ResponseMessage("Fetch list user with paginate")
+  findAll(
+    @Query("page") currentPage: string,
+    @Query("limit") limit: string,
+    @Query() qs: string
+  ) {
+    return this.usersService.findAll(+currentPage, +limit, qs);
   }
 
+  @Public()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
