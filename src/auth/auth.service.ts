@@ -6,7 +6,7 @@ import { RegisterUserDto } from 'src/users/dto/create-user.dto';
 import { genSaltSync, hashSync } from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import ms from 'ms'
-import { Response } from 'express';
+import { Response, response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -105,10 +105,11 @@ export class AuthService {
                 // Update user with refresh token
                 await this.usersService.updateUserToken(refresh_token, _id.toString());
 
+                // Clear refresh_token as cookies
                 response.clearCookie("refresh_token");
 
                 //set refresh_token as cookies
-                response.cookie('refresh_token1', refresh_token, {
+                response.cookie('refresh_token', refresh_token, {
                     httpOnly: true,
                     maxAge: ms(this.configService.get<string>("JWT_REFRESH_EXPIRE"))
                 })
@@ -130,5 +131,35 @@ export class AuthService {
             throw new BadRequestException(`Refresh token không hợp lệ. Vui lòng login!`)
         }
 
+    }
+
+    processLogout = async (response: Response, user: IUser) => {
+        await this.usersService.updateUserToken("", user._id);
+        response.clearCookie("refresh_token");
+        return "Ok"
+        // this.jwtService.verify(refreshToken, {
+        //     secret: this.configService.get<string>("JWT_REFRESH_TOKEN_SECRET")
+        // })
+
+        // let user = await this.usersService.findUserByToken(refreshToken)
+        // if (user) {
+        //     const { _id, name, email, role } = user;
+
+        //     const refresh_token = null
+
+        //     // Update user with refresh token
+        //     await this.usersService.updateUserToken(refresh_token, _id.toString());
+
+        //     //set refresh_token as cookies
+        //     response.cookie('refresh_token', refresh_token)
+
+        //     // Clear refresh_token as cookies
+        //     response.clearCookie("refresh_token");
+
+        //     return "Ok"
+        // }
+        // else {
+        //     throw new BadRequestException(`Refresh token không hợp lệ. Vui lòng login!`)
+        // }
     }
 }
