@@ -83,7 +83,5 @@ export class CreateJobDto {
     })
     @IsBoolean({ message: 'isActive có định dạng boolean' })
     isActive: boolean;
-
-
 }
 
