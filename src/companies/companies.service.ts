@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import { Company, CompanyDocument } from './shemas/company.shema';
+import { Company, CompanyDocument } from './schemas/company.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { IUser } from 'src/users/user.interface';
 import mongoose from 'mongoose';

@@ -10,15 +10,11 @@ export class ResumesController {
   constructor(private readonly resumesService: ResumesService) { }
 
   @Post()
-  @ResponseMessage("Create a resume")
-  async create(
+  @ResponseMessage("Create a new resume")
+  create(
     @Body() createUserCvDto: CreateUserCvDto,
     @User() user: IUser) {
-    let newResume = await this.resumesService.create(createUserCvDto, user);
-    return {
-      _id: newResume?._id,
-      createdAt: newResume?.createdAt
-    };
+    return this.resumesService.create(createUserCvDto, user);
   }
 
   @Get()
@@ -30,6 +26,7 @@ export class ResumesController {
   ) {
     return this.resumesService.findAll(+currentPage, +limit, qs);
   }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.resumesService.findOne(id);

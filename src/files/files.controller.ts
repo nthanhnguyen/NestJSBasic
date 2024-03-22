@@ -27,7 +27,7 @@ export class FilesController {
         }),
     ) file: Express.Multer.File) {
     return {
-      fielName: file.filename
+      fileName: file.filename
     }
   }
 

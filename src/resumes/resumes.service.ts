@@ -17,28 +17,31 @@ export class ResumesService {
     const { url, companyId, jobId } = createUserCvDto;
     const { email, _id } = user
 
-    let newCV = await this.resumeModel.create({
+    const newCV = await this.resumeModel.create({
       url,
       companyId,
       jobId,
-      email: email,
+      email,
       userId: _id,
       status: "PENDING",
       history: {
         status: "PENDING",
         updatedAt: new Date,
         updatedby: {
-          _id: _id,
-          email: email
+          _id: user._id,
+          email: user.email
         }
 
       },
       createdBy: {
-        _id: _id,
-        email: email
+        _id,
+        email
       }
     })
-    return newCV
+    return {
+      _id: newCV?._id,
+      createdAt: newCV?.createdAt
+    }
   }
 
   async findAll(currentPage: number, limit: number, qs: string) {
@@ -88,11 +91,13 @@ export class ResumesService {
           email: user.email
         },
         $push: {
-          history: status,
-          updatedAt: new Date,
-          updatedBy: {
-            _id: user._id,
-            email: user.email
+          history: {
+            status,
+            updatedAt: new Date,
+            updatedBy: {
+              _id: user._id,
+              email: user.email
+            }
           }
         }
       }
