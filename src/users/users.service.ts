@@ -79,12 +79,15 @@ export class UsersService {
   findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id))
       throw new BadGatewayException('Not found users')
-    return this.userModel.findOne({ _id: id }).select('-password');
+    return this.userModel.findOne({ _id: id })
+      .select('-password')
+      .populate({ path: "role", select: { name: 1, _id: 1 } });
   }
 
 
   findOneByUsername(username: string) {
-    return this.userModel.findOne({ email: username });
+    return this.userModel.findOne({ email: username })
+      .populate({ path: "role", select: { name: 1, permissions: 1 } });
   }
 
   isValidPassword(password: string, hash: string) {
@@ -103,6 +106,13 @@ export class UsersService {
   }
 
   async remove(id: string, user: IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id))
+      throw new BadGatewayException('Not found user')
+
+    const foundUser = await this.userModel.findById(id)
+    if (foundUser.email === "admin@gmail.com")
+      throw new BadGatewayException('Không thể xóa tài khoàn có email là "admin@gmail.com"')
+
     await this.userModel.updateOne({ _id: id },
       {
         deletedBy: {
