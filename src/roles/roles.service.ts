@@ -7,6 +7,7 @@ import { Role, RoleDocument } from './schemas/role.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import mongoose from 'mongoose';
 import aqp from 'api-query-params';
+import { ADMIN_ROLE } from 'src/databases/sample';
 
 @Injectable()
 export class RolesService {
@@ -91,7 +92,7 @@ export class RolesService {
     if (!mongoose.Types.ObjectId.isValid(id))
       throw new BadGatewayException('Not found role')//////
     const foundRole = await this.roleModel.findById(id)
-    if (foundRole.name === "ADMIN")
+    if (foundRole.name === ADMIN_ROLE)
       throw new BadGatewayException('Không thể xóa role ADMIN')
 
     await this.roleModel.updateOne({ _id: id },
