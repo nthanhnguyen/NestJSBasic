@@ -115,7 +115,7 @@ export class UsersService {
       throw new BadGatewayException('Not found user')
 
     const foundUser = await this.userModel.findById(id)
-    if (foundUser.email === "admin@gmail.com")
+    if (foundUser && foundUser.email === "admin@gmail.com")
       throw new BadGatewayException('Không thể xóa tài khoàn có email là "admin@gmail.com"')
 
     await this.userModel.updateOne({ _id: id },

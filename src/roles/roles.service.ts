@@ -64,7 +64,7 @@ export class RolesService {
     if (!mongoose.Types.ObjectId.isValid(id))
       throw new BadGatewayException('Not found role')
     return (await this.roleModel.findById(id))
-      .populate({ path: "permissions", select: { _id: 1, apiPath: 1, name: 1, method: 1 } });
+      .populate({ path: "permissions", select: { _id: 1, apiPath: 1, name: 1, method: 1, module: 1 } });
   }
 
   async update(_id: string, updateRoleDto: UpdateRoleDto, user: IUser) {
