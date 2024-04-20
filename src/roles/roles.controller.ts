@@ -49,7 +49,7 @@ export class RolesController {
   }
 
   @Delete(':id')
-  @ResponseMessage("Delete a permission")
+  @ResponseMessage("Delete a role")
   remove(
     @Param('id') id: string,
     @User() user: IUser

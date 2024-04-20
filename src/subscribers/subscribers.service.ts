@@ -1,36 +1,36 @@
 import { BadGatewayException, BadRequestException, Injectable } from '@nestjs/common';
-import { CreateRoleDto } from './dto/create-role.dto';
-import { UpdateRoleDto } from './dto/update-role.dto';
+import { CreateSubscriberDto } from './dto/create-subscriber.dto';
+import { UpdateSubscriberDto } from './dto/update-subscriber.dto';
 import { IUser } from 'src/users/user.interface';
 import { InjectModel } from '@nestjs/mongoose';
-import { Role, RoleDocument } from './schemas/role.schema';
+import { Subscriber, SubscriberDocument } from './schemas/subscriber.shema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import mongoose from 'mongoose';
 import aqp from 'api-query-params';
-import { ADMIN_ROLE } from 'src/databases/sample';
+import mongoose from 'mongoose';
 
 @Injectable()
-export class RolesService {
-  constructor(@InjectModel(Role.name) private roleModel: SoftDeleteModel<RoleDocument>) { }
+export class SubscribersService {
 
-  async create(createRoleDto: CreateRoleDto, user: IUser) {
-    const { name, description, isActive, permissions } = createRoleDto;
+  constructor(@InjectModel(Subscriber.name) private subscriberModel: SoftDeleteModel<SubscriberDocument>) { }
 
-    const isExist = await this.roleModel.findOne({ name });
+
+  async create(createSubscriberDto: CreateSubscriberDto, user: IUser) {
+    const { email, name, skills } = createSubscriberDto;
+
+    const isExist = await this.subscriberModel.findOne({ email });
     if (isExist) {
-      throw new BadRequestException(`Role với name: ${name} đã tồn tại trên hệ thống vui lòng sử dụng name khác`)
+      throw new BadRequestException(`Role với name: ${email} đã tồn tại trên hệ thống. Vui lòng sử dụng email khác!`)
     }
-    let newRole = await this.roleModel.create({
+    let newSubscriber = await this.subscriberModel.create({
+      email,
       name,
-      description,
-      isActive,
-      permissions,
+      skills,
       createdBy: {
         _id: user._id,
         email: user.email
       }
     })
-    return newRole
+    return newSubscriber
   }
   async findAll(currentPage: number, limit: number, qs: string) {
     const { filter, sort, population } = aqp(qs);
@@ -39,10 +39,10 @@ export class RolesService {
     let offset = (+currentPage - 1) * (+limit);
     let defaultLimit = +limit ? +limit : 10;
 
-    const totalItems = (await this.roleModel.find(filter)).length;
+    const totalItems = (await this.subscriberModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultLimit);
 
-    const result = await this.roleModel.find(filter)
+    const result = await this.subscriberModel.find(filter)
       .skip(offset)
       .limit(defaultLimit)
       .sort(sort as any)
@@ -59,28 +59,26 @@ export class RolesService {
       result //kết quả query
     }
   }
-
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id))
-      throw new BadGatewayException('Not found role')
-    return (await this.roleModel.findById(id))
-      .populate({ path: "permissions", select: { _id: 1, apiPath: 1, name: 1, method: 1, module: 1 } });
+      throw new BadGatewayException('Not found subscriber')
+    return (await this.subscriberModel.findById(id))
   }
 
-  async update(_id: string, updateRoleDto: UpdateRoleDto, user: IUser) {
+  async update(_id: string, updateSubscriberDto: UpdateSubscriberDto, user: IUser) {
     if (!mongoose.Types.ObjectId.isValid(_id))
-      throw new BadGatewayException('Not found role')
+      throw new BadGatewayException('Not found subscriber')
 
-    const { name, description, isActive, permissions } = updateRoleDto;
+    const { email, name, skills } = updateSubscriberDto;
 
     // const isExist = await this.roleModel.findOne({ name });
     // if (isExist) {
     //   throw new BadRequestException(`Role với name: ${name} đã tồn tại trên hệ thống vui lòng sử dụng name khác`)
     // }
 
-    return await this.roleModel.updateOne({ _id },
+    return await this.subscriberModel.updateOne({ _id },
       {
-        name, description, isActive, permissions,
+        email, name, skills,
         updatedBy: {
           _id: user._id,
           email: user.email
@@ -90,18 +88,15 @@ export class RolesService {
 
   async remove(id: string, user: IUser) {
     if (!mongoose.Types.ObjectId.isValid(id))
-      throw new BadGatewayException('Not found role')//////
-    const foundRole = await this.roleModel.findById(id)
-    if (foundRole.name === ADMIN_ROLE)
-      throw new BadGatewayException('Không thể xóa role ADMIN')
+      throw new BadGatewayException('Not found subscriber')
 
-    await this.roleModel.updateOne({ _id: id },
+    await this.subscriberModel.updateOne({ _id: id },
       {
         deletedBy: {
           _id: user._id,
           email: user.email
         }
       });
-    return this.roleModel.softDelete({ _id: id });
+    return this.subscriberModel.softDelete({ _id: id });
   }
 }
