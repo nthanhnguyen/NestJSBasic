@@ -65,25 +65,19 @@ export class SubscribersService {
     return (await this.subscriberModel.findById(id))
   }
 
-  async update(_id: string, updateSubscriberDto: UpdateSubscriberDto, user: IUser) {
-    if (!mongoose.Types.ObjectId.isValid(_id))
-      throw new BadGatewayException('Not found subscriber')
-
-    const { email, name, skills } = updateSubscriberDto;
-
-    // const isExist = await this.roleModel.findOne({ name });
-    // if (isExist) {
-    //   throw new BadRequestException(`Role với name: ${name} đã tồn tại trên hệ thống vui lòng sử dụng name khác`)
-    // }
-
-    return await this.subscriberModel.updateOne({ _id },
+  async update(updateSubscriberDto: UpdateSubscriberDto, user: IUser) {
+    const updated = await this.subscriberModel.updateOne(
+      { email: user.email },
       {
-        email, name, skills,
+        ...updateSubscriberDto,
         updatedBy: {
           _id: user._id,
           email: user.email
-        }
-      });
+        },
+      },
+      { upsert: true }
+    );
+    return updated;
   }
 
   async remove(id: string, user: IUser) {
@@ -98,5 +92,10 @@ export class SubscribersService {
         }
       });
     return this.subscriberModel.softDelete({ _id: id });
+  }
+
+  async getSkills(user: IUser) {
+    const { email } = user;
+    return await this.subscriberModel.findOne({ email }, { skills: 1 })
   }
 }
