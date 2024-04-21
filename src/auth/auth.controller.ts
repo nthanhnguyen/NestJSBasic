@@ -7,6 +7,7 @@ import { Response, Request } from 'express';
 import { IUser } from 'src/users/user.interface';
 import { request } from 'http';
 import { RolesService } from 'src/roles/roles.service';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Controller("auth")
 export class AuthController {
@@ -17,6 +18,7 @@ export class AuthController {
 
     @Public()
     @UseGuards(LocalAuthGuard)
+    @UseGuards(ThrottlerGuard)
     @Post('/login')
     @ResponseMessage("User Login")
     handleLogin(

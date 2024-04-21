@@ -16,11 +16,17 @@ import { DatabasesModule } from './databases/databases.module';
 import { SubscribersModule } from './subscribers/subscribers.module';
 import { MailModule } from './mail/mail.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
     //MongooseModule.forRoot('mongodb+srv://ntnguyen:tqpq1wEyuSYGp3PR@cluster0.as3cjfm.mongodb.net/'),
     ScheduleModule.forRoot(),
+    // Config rate limiting
+    ThrottlerModule.forRoot({
+      ttl: 60,
+      limit: 10,
+    }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
