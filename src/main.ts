@@ -9,6 +9,7 @@ import { TransformInterceptor } from './core/transform.interceptor';
 require('dotenv').config();
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -49,6 +50,30 @@ async function bootstrap() {
 
   // Config helmet
   app.use(helmet());
+
+  // Config swagger
+
+  const config = new DocumentBuilder()
+    .setTitle('NestJS APIs')
+    .setDescription('All Modules APIs')
+    .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'Bearer',
+        bearerFormat: 'JWT',
+        in: 'header',
+      },
+      'token',
+    )
+    .addSecurityRequirements('token')
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('swagger', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    }
+  });
 
   await app.listen(configService.get<string>('PORT'));
 }
