@@ -8,6 +8,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { TransformInterceptor } from './core/transform.interceptor';
 require('dotenv').config();
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -21,12 +22,14 @@ async function bootstrap() {
   app.setBaseViewsDir(join(__dirname, '..', 'views'));
   app.setViewEngine('ejs');
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+  }));
 
-  //config cookies
+  // Config cookies
   app.use(cookieParser());
 
-  //config cors
+  // Config cors
   app.enableCors(
     {
       "origin": true,
@@ -37,12 +40,15 @@ async function bootstrap() {
     }
   );
 
-  //config versioning
+  // Config versioning
   app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,
     defaultVersion: ['1', '2']
   });
+
+  // Config helmet
+  app.use(helmet());
 
   await app.listen(configService.get<string>('PORT'));
 }
