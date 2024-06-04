@@ -42,11 +42,11 @@ async function bootstrap() {
   );
 
   // Config versioning
-  app.setGlobalPrefix('api');
-  app.enableVersioning({
-    type: VersioningType.URI,
-    defaultVersion: ['1', '2']
-  });
+  // app.setGlobalPrefix('api');
+  // app.enableVersioning({
+  //   type: VersioningType.URI,
+  //   defaultVersion: ['1', '2']
+  // });
 
   // Config helmet
   app.use(helmet());
