@@ -12,8 +12,8 @@ import helmet from 'helmet';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { cors: true });
-  //const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  //const app = await NestFactory.create<NestExpressApplication>(AppModule, { cors: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
 
   const reflector = app.get(Reflector);
@@ -34,7 +34,7 @@ async function bootstrap() {
   // Config cors
   app.enableCors(
     {
-      // "origin": true,
+      //"origin": true,
       "origin": "https://job-posting-two.vercel.app",
       "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
       "preflightContinue": false,
