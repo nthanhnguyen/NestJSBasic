@@ -1,8 +1,8 @@
 {
-  "name": "nest-basic-hoidanit",
+  "name": "job-posting-website",
   "version": "0.0.1",
-  "description": "https://hoidanit.com.vn/",
-  "author": "Hỏi Dân IT",
+  "description": "Backend for job posting website",
+  "author": "ATN",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
