@@ -15,22 +15,18 @@ A job posting/application website built using Nest.js and MongoDB.
 
 ## Screenshots
 
-
+- Homepage:
 ![image](https://github.com/nthanhnguyen/NestJSBasic/assets/110075152/1ce6b21f-72c4-43c9-9443-5b6db4403ff9)
 ![image](https://github.com/nthanhnguyen/NestJSBasic/assets/110075152/99d89855-1516-4a5c-879f-b11a97e8fb72)
 
+- Company profile page:
+![image](https://github.com/nthanhnguyen/NestJSBasic/assets/110075152/0894be37-9a76-4deb-9a9a-080f99386ca6)
 
-![image](https://github.com/nthanhnguyen/NestJSBasic/assets/110075152/6555a068-e6f3-4579-bdd8-1bf24b1ec826)
-
+- Job details page:
 ![image](https://github.com/nthanhnguyen/NestJSBasic/assets/110075152/bd0c13ee-5bd8-474b-a577-0517c20c998d)
 
+- Admin page:
 ![image](https://github.com/nthanhnguyen/NestJSBasic/assets/110075152/b38b1770-b03b-4183-afaf-dbc12f2afcbf)
-
-
-
-
-
-
 
 
 ## Run
