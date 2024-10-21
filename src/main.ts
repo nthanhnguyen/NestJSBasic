@@ -34,8 +34,8 @@ async function bootstrap() {
   // Config cors
   app.enableCors(
     {
-      //"origin": true,
-      "origin": "https://job-posting-two.vercel.app",
+      "origin": true,
+      // "origin": "https://job-posting-two.vercel.app",
       "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
       "preflightContinue": false,
       "optionsSuccessStatus": 204,
