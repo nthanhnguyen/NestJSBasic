@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserResumeDto } from './dto/create-user-resume.dto';
 import { UpdateUserResumeDto } from './dto/update-user-resume.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -6,15 +6,18 @@ import { UserResume, UserResumeDocument } from './entities/user-resume.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/users/user.interface';
 import aqp from 'api-query-params';
+import mongoose from 'mongoose';
 
 @Injectable()
 export class UserResumesService {
-
-  constructor(@InjectModel(UserResume.name) private resumeModel: SoftDeleteModel<UserResumeDocument>) { }
+  constructor(
+    @InjectModel(UserResume.name)
+    private resumeModel: SoftDeleteModel<UserResumeDocument>,
+  ) {}
 
   async create(createUserResumeDto: CreateUserResumeDto, user: IUser) {
     const { jobTitle } = createUserResumeDto;
-    const { email, _id } = user
+    const { email, _id } = user;
 
     const newCV = await this.resumeModel.create({
       // firstName: '',
@@ -28,14 +31,14 @@ export class UserResumesService {
       userEmail: email,
       createdBy: {
         _id,
-        email
-      }
-    })
+        email,
+      },
+    });
     return {
       _id: newCV?._id,
       title: newCV?.jobTitle,
-      createdAt: newCV?.createdAt
-    }
+      createdAt: newCV?.createdAt,
+    };
   }
 
   async findAll(currentPage: number, limit: number, qs: string, user: IUser) {
@@ -50,7 +53,7 @@ export class UserResumesService {
     delete filter.pageSize;
 
     // Calculate pagination values.
-    let offset = (+currentPage - 1) * (+limit);
+    let offset = (+currentPage - 1) * +limit;
     let defaultLimit = +limit ? +limit : 10;
 
     // Get the total number of items matching the filter.
@@ -58,7 +61,8 @@ export class UserResumesService {
     const totalPages = Math.ceil(totalItems / defaultLimit);
 
     // Fetch the filtered and paginated results.
-    const result = await this.resumeModel.find(filter)
+    const result = await this.resumeModel
+      .find(filter)
       .skip(offset)
       .limit(defaultLimit)
       .sort(sort as any)
@@ -71,26 +75,33 @@ export class UserResumesService {
         current: currentPage, // Current page number.
         pageSize: limit, // Number of records per page.
         pages: totalPages, // Total pages based on the filter.
-        total: totalItems // Total items matching the filter.
+        total: totalItems, // Total items matching the filter.
       },
-      result // Query results.
+      result, // Query results.
     };
-}
-
-
-  findOne(id: number) {
-    return `This action returns a #${id} userResume`;
   }
 
-  async update(id: string, updateUserResumeDto: UpdateUserResumeDto, user: IUser) {
-    return await this.resumeModel.updateOne({ _id: id },
+  async findOne(id: string) {
+    if (!mongoose.Types.ObjectId.isValid(id))
+      throw new BadRequestException(`Not found user resume with id = ${id}`);
+    return await this.resumeModel.findOne({ _id: id });
+  }
+
+  async update(
+    id: string,
+    updateUserResumeDto: UpdateUserResumeDto,
+    user: IUser,
+  ) {
+    return await this.resumeModel.updateOne(
+      { _id: id },
       {
         ...updateUserResumeDto,
         updatedBy: {
           _id: user._id,
-          email: user.email
-        }
-      });
+          email: user.email,
+        },
+      },
+    );
   }
 
   remove(id: number) {
