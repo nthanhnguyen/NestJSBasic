@@ -1,3 +1,5 @@
+import { AccountStatus } from "./schemas/user.schema";
+
 export interface IUser {
     _id: string;
     name: string;
@@ -6,6 +8,8 @@ export interface IUser {
         _id: string;
         name: string;
     };
+    activationToken?: string;
+    accountStatus?: AccountStatus;
     permissions?: {
         _id: string;
         name: string;

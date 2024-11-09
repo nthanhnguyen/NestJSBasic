@@ -2,8 +2,8 @@ import { BadGatewayException, BadRequestException, Injectable } from '@nestjs/co
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User as UserM, UserDocument } from './schemas/user.schema';
-import mongoose, { Model } from 'mongoose';
+import { User as UserM, UserDocument, AccountStatus } from './schemas/user.schema';
+import mongoose, { Model, Types } from 'mongoose';
 import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from './user.interface';
@@ -110,6 +110,17 @@ export class UsersService {
       });
   }
 
+  async save(user: any) {
+    return await this.userModel.updateOne({ _id: user._id },
+      {
+        ...user,
+        updatedBy: {
+          _id: user._id,
+          email: user.email
+        }
+      });
+  } 
+
   async remove(id: string, user: IUser) {
     if (!mongoose.Types.ObjectId.isValid(id))
       throw new BadGatewayException('Not found user')
@@ -129,7 +140,7 @@ export class UsersService {
   }
 
   async register(registerUserDto: RegisterUserDto) {
-    const { name, email, password, age, gender, address } = registerUserDto;
+    const { name, email, password, age, gender, address, activationToken } = registerUserDto;
     //logic check email
     const isExist = await this.userModel.findOne({ email });
     if (isExist) {
@@ -147,11 +158,13 @@ export class UsersService {
       age,
       gender,
       address,
-      role: userRole?._id
+      role: userRole?._id,
+      activationToken,
+      accountStatus: AccountStatus.PENDING_ACTIVATE,
     })
   }
 
-  updateUserToken = async (refreshToken: string, _id: string) => {
+  updateUserToken = async (refreshToken: string, _id: string | Types.ObjectId) => {
     return await this.userModel.updateOne(
       { _id },
       { refreshToken }
@@ -162,5 +175,13 @@ export class UsersService {
     return (await this.userModel
       .findOne({ refreshToken }))
       .populate({ path: "role", select: { name: 1 } })
+  }
+
+  async findUserByActivationToken(activationToken: string) {
+    return await this.userModel.findOne({
+        where: {
+          activationToken,
+        },
+    });
   }
 }

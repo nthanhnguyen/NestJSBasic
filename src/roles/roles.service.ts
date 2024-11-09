@@ -5,7 +5,7 @@ import { IUser } from 'src/users/user.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { Role, RoleDocument } from './schemas/role.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import aqp from 'api-query-params';
 import { ADMIN_ROLE } from 'src/databases/sample';
 

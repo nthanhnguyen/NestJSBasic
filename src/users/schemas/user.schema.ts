@@ -4,6 +4,12 @@ import { Role } from 'src/roles/schemas/role.schema';
 
 export type UserDocument = HydratedDocument<User>;
 
+export enum AccountStatus {
+    PENDING_ACTIVATE = 'PENDING_ACTIVATE',
+    ACTIVATED = 'ACTIVATED',
+    DELETED = 'DELETED',
+}
+
 @Schema({ timestamps: true })
 export class User {
     @Prop()
@@ -35,6 +41,15 @@ export class User {
 
     @Prop()
     refreshToken: string;
+
+    @Prop()
+    activationToken: string;
+
+    @Prop()
+    accountStatus: AccountStatus;
+
+    @Prop()
+    resetPwToken: string;
 
     @Prop({ type: Object })
     createdBy: {

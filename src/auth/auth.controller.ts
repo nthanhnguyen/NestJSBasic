@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public, ResponseMessage, User } from './decorator/customize';
 import { LocalAuthGuard } from './local-auth.guard';
@@ -43,6 +43,14 @@ export class AuthController {
     @Post('/register')
     handleRegister(@Body() registerUserDto: RegisterUserDto) {
         return this.authService.register(registerUserDto);
+    }
+
+    @Public()
+    @ResponseMessage("Activate a new User")
+    @Put('activation/:activationToken')
+    async activation(@Param('activationToken') activationToken: string) {
+        return this.authService.activation(activationToken);
+
     }
 
     @Public()
