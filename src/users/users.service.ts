@@ -111,15 +111,18 @@ export class UsersService {
   }
 
   async save(user: any) {
-    return await this.userModel.updateOne({ _id: user._id },
+    const userObj = user.toObject ? user.toObject() : user;
+    return await this.userModel.updateOne(
+      { _id: user._id },
       {
-        ...user,
+        ...userObj,
         updatedBy: {
           _id: user._id,
           email: user.email
         }
-      });
-  } 
+      }
+    );
+  }
 
   async remove(id: string, user: IUser) {
     if (!mongoose.Types.ObjectId.isValid(id))
@@ -178,10 +181,6 @@ export class UsersService {
   }
 
   async findUserByActivationToken(activationToken: string) {
-    return await this.userModel.findOne({
-        where: {
-          activationToken,
-        },
-    });
+    return this.userModel.findOne({ activationToken })
   }
 }

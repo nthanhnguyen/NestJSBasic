@@ -48,9 +48,11 @@ export class AuthController {
     @Public()
     @ResponseMessage("Activate a new User")
     @Put('activation/:activationToken')
-    async activation(@Param('activationToken') activationToken: string) {
-        return this.authService.activation(activationToken);
-
+    async activation(
+        @Param('activationToken') activationToken: string, 
+        @Res({ passthrough: true }) response: Response
+    ) {
+        return this.authService.activation(activationToken, response);
     }
 
     @Public()

@@ -89,7 +89,6 @@ export class AuthService {
         const activationToken = this.generateCode(false, 60);
 
         // Hash the password before storing the user
-        registerUser.password = this.getHashPassword(registerUser.password);
         registerUser['activationToken'] = activationToken; // Store the activation token in the user record
 
         // Save the user to the database
@@ -105,7 +104,7 @@ export class AuthService {
         };
     }
 
-    async activation(activationToken: string) {
+    async activation(activationToken: string, response: Response) {
         const user = await this.usersService.findUserByActivationToken(activationToken);
         if (!user) {
             throw new BadRequestException(`Activation Token không hợp lệ!`)
@@ -116,7 +115,6 @@ export class AuthService {
             user.activationToken = null;
             await this.usersService.save(user);
         }
-
         const { _id, name, email, role } = user;
         const payload = {
             sub: "token login",
@@ -126,7 +124,6 @@ export class AuthService {
             email,
             role,
         };
-
         const refresh_token = this.createRefreshToken(payload)
 
         // Update user with refresh token
@@ -137,9 +134,7 @@ export class AuthService {
             httpOnly: true,
             maxAge: ms(this.configService.get<string>("JWT_REFRESH_EXPIRE"))
         })
-
         const temp = await this.rolesService.findOne(String(user.role)) as any;
-
         return {
             access_token: this.jwtService.sign(payload),
             user: {
