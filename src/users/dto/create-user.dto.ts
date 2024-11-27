@@ -31,9 +31,9 @@ export class CreateUserDto {
     password: string;
 
     @IsNotEmpty({
-        message: 'Age không được để trống',
+        message: 'Số điện thoại không được để trống',
     })
-    age: number;
+    phoneNo: number;
 
     @IsNotEmpty({
         message: 'Gender không được để trống',
@@ -45,12 +45,10 @@ export class CreateUserDto {
     })
     address: string;
 
-    @IsNotEmpty({
-        message: 'Role không được để trống',
-    })
+    @IsOptional()
     role: string;
 
-    @IsNotEmptyObject()
+    @IsOptional()
     @IsObject()
     @ValidateNested()
     @Type(() => Company)
@@ -77,9 +75,9 @@ export class RegisterUserDto {
     password: string;
 
     @IsNotEmpty({
-        message: 'Age không được để trống',
+        message: 'Số điện thoại không được để trống',
     })
-    age: number;
+    phoneNo: number;
 
     @IsNotEmpty({
         message: 'Gender không được để trống',

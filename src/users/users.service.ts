@@ -27,7 +27,7 @@ export class UsersService {
 
 
   async create(createUserDto: CreateUserDto, user: IUser) {
-    const { name, email, password, age, gender, address, role, company } = createUserDto;
+    const { name, email, password, phoneNo, gender, address, role, company } = createUserDto;
     //logic check email
     const isExist = await this.userModel.findOne({ email });
     if (isExist) {
@@ -39,7 +39,7 @@ export class UsersService {
       email,
       name,
       password: hashPassword,
-      age,
+      phoneNo,
       gender,
       address,
       role,
@@ -143,7 +143,7 @@ export class UsersService {
   }
 
   async register(registerUserDto: RegisterUserDto) {
-    const { name, email, password, age, gender, address, activationToken } = registerUserDto;
+    const { name, email, password, phoneNo, gender, address, activationToken } = registerUserDto;
     //logic check email
     const isExist = await this.userModel.findOne({ email });
     if (isExist) {
@@ -158,7 +158,7 @@ export class UsersService {
       name,
       email,
       password: hashPassword,
-      age,
+      phoneNo,
       gender,
       address,
       role: userRole?._id,
@@ -182,5 +182,20 @@ export class UsersService {
 
   async findUserByActivationToken(activationToken: string) {
     return this.userModel.findOne({ activationToken })
+  }
+
+  async changePassword(user: IUser, newPassword: string) {
+    const hashPassword = this.getHashPassword(newPassword);
+
+    if (user) {
+      return await this.userModel.updateOne({ _id: user._id },
+        {
+          password: hashPassword,
+          updatedBy: {
+            _id: user._id,
+            email: user.email,
+          }
+        });
+    }
   }
 }

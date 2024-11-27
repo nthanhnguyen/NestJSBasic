@@ -68,7 +68,7 @@ export class DatabasesService implements OnModuleInit {
                         name: "Admin",
                         email: "admin@gmail.com",
                         password: this.userService.getHashPassword(this.configService.get<string>("INIT_PASSWORD")),
-                        age: 69,
+                        phoneNo: 69,
                         gender: "MALE",
                         address: "VietNam",
                         role: adminRole?._id
@@ -77,7 +77,7 @@ export class DatabasesService implements OnModuleInit {
                         name: "Thanh Nguyen",
                         email: "nguyen@gmail.com",
                         password: this.userService.getHashPassword(this.configService.get<string>("INIT_PASSWORD")),
-                        age: 96,
+                        phoneNo: 96,
                         gender: "MALE",
                         address: "VietNam",
                         role: adminRole?._id
@@ -86,7 +86,7 @@ export class DatabasesService implements OnModuleInit {
                         name: "user",
                         email: "user@gmail.com",
                         password: this.userService.getHashPassword(this.configService.get<string>("INIT_PASSWORD")),
-                        age: 69,
+                        phoneNo: 69,
                         gender: "MALE",
                         address: "VietNam",
                         role: userRole?._id

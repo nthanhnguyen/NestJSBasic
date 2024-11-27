@@ -22,7 +22,7 @@ export class User {
     password: string;
 
     @Prop()
-    age: number;
+    phoneNo: number;
 
     @Prop()
     gender: string;
