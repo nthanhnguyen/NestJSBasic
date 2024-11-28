@@ -15,5 +15,9 @@ export interface IUser {
         name: string;
         apiPath: string;
         module: string
-    }[]
+    }[];
+    // company?: {
+    //     _id: string;
+    //     name: string;
+    // }[]
 }

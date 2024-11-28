@@ -29,6 +29,17 @@ export class ResumesController {
     return this.resumesService.findAll(+currentPage, +limit, qs);
   }
 
+  @Get('/employer')
+  @ResponseMessage("Fetch list resume with paginate for Hr")
+  findJobForHr(
+    @Query("current") currentPage: string,
+    @Query("pageSize") limit: string,
+    @Query("hrId") hrId: string,
+    @Query() qs: string
+  ) {
+    return this.resumesService.findJobForHr(+currentPage, +limit, qs, hrId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.resumesService.findOne(id);

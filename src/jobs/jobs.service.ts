@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { IUser } from 'src/users/user.interface';
@@ -7,11 +7,15 @@ import { Job, JobDocument } from './schemas/job.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import mongoose from 'mongoose';
 import aqp from 'api-query-params';
+import { User, UserDocument } from 'src/users/schemas/user.schema';
 
 @Injectable()
 export class JobsService {
 
-  constructor(@InjectModel(Job.name) private jobModel: SoftDeleteModel<JobDocument>) { }
+  constructor(
+    @InjectModel(Job.name) private jobModel: SoftDeleteModel<JobDocument>,
+    @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
+  ) { }
 
   async create(createJobDto: CreateJobDto, user: IUser) {
     const { name, skills, company, location, salary, quantity,
@@ -53,6 +57,48 @@ export class JobsService {
       .populate(population)
       .exec();
 
+    return {
+      meta: {
+        current: currentPage, //trang hiện tại
+        pageSize: limit, //số lượng bản ghi đã lấy
+        pages: totalPages, //tổng số trang với điều kiện query
+        total: totalItems // tổng số phần tử (số bản ghi)
+      },
+      result //kết quả query
+    }
+  }
+
+  async findJobForHr(currentPage: number, limit: number, qs: string, hrId: string) {
+    const { filter, sort, population } = aqp(qs);
+    delete filter.current;
+    delete filter.pageSize;
+    delete filter.hrId;
+
+    const hr = await this.userModel.findById(hrId);
+    if (!hr) {
+      throw new BadRequestException('Tài khoản không tồn tại!')
+    }
+    const companyId = hr?.company?._id;
+    if (!companyId) {
+      throw new BadRequestException('Công ty của người dùng không tồn tại!');
+    }
+  
+    // Add company filter to the query
+    filter['company._id'] = companyId;
+
+    let offset = (+currentPage - 1) * (+limit);
+    let defaultLimit = +limit ? +limit : 10;
+
+    const totalItems = (await this.jobModel.find(filter)).length;
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+
+
+    const result = await this.jobModel.find(filter)
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort(sort as any)
+      .populate(population)
+      .exec();
     return {
       meta: {
         current: currentPage, //trang hiện tại

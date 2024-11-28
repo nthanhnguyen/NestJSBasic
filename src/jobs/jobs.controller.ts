@@ -35,9 +35,21 @@ export class JobsController {
   findAll(
     @Query("current") currentPage: string,
     @Query("pageSize") limit: string,
-    @Query() qs: string
+    @Query() qs: string,
   ) {
     return this.jobsService.findAll(+currentPage, +limit, qs);
+  }
+
+  @Get('/employer')
+  @Public()
+  @ResponseMessage("Fetch list job with paginate for Hr")
+  findJobForHr(
+    @Query("current") currentPage: string,
+    @Query("pageSize") limit: string,
+    @Query("hrId") hrId: string,
+    @Query() qs: string,
+  ) {
+    return this.jobsService.findJobForHr(+currentPage, +limit, qs, hrId);
   }
 
   //@Public()

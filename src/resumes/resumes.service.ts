@@ -1,4 +1,4 @@
-import { BadGatewayException, Injectable } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, Injectable } from '@nestjs/common';
 import { CreateResumeDto, CreateUserCvDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 import mongoose from 'mongoose';
@@ -7,11 +7,15 @@ import { Resume, ResumeDocument } from './schemas/resume.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { IUser } from 'src/users/user.interface';
 import aqp from 'api-query-params';
+import { User, UserDocument } from 'src/users/schemas/user.schema';
 
 @Injectable()
 export class ResumesService {
 
-  constructor(@InjectModel(Resume.name) private resumeModel: SoftDeleteModel<ResumeDocument>) { }
+  constructor(
+      @InjectModel(Resume.name) private resumeModel: SoftDeleteModel<ResumeDocument>,
+      @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
+  ) { }
 
   async create(createUserCvDto: CreateUserCvDto, user: IUser) {
     const { url, companyId, jobId } = createUserCvDto;
@@ -48,6 +52,49 @@ export class ResumesService {
     const { filter, sort, population, projection } = aqp(qs);
     delete filter.current;
     delete filter.pageSize;
+    let offset = (+currentPage - 1) * (+limit);
+    let defaultLimit = +limit ? +limit : 10;
+
+    const totalItems = (await this.resumeModel.find(filter)).length;
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+
+    const result = await this.resumeModel.find(filter)
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort(sort as any)
+      .populate(population)
+      .select(projection as any)
+      .exec();
+
+    return {
+      meta: {
+        current: currentPage, //trang hiện tại
+        pageSize: limit, //số lượng bản ghi đã lấy
+        pages: totalPages, //tổng số trang với điều kiện query
+        total: totalItems // tổng số phần tử (số bản ghi)
+      },
+      result //kết quả query
+    }
+  }
+
+  async findJobForHr(currentPage: number, limit: number, qs: string, hrId: string) {
+    const { filter, sort, population, projection } = aqp(qs);
+    delete filter.current;
+    delete filter.pageSize;
+    delete filter.hrId;
+
+    const hr = await this.userModel.findById(hrId);
+    if (!hr) {
+      throw new BadRequestException('Tài khoản không tồn tại!')
+    }
+    const companyId = hr?.company?._id;
+    if (!companyId) {
+      throw new BadRequestException('Công ty của người dùng không tồn tại!');
+    }
+  
+    // Add company filter to the query
+    filter['companyId'] = companyId;
+
     let offset = (+currentPage - 1) * (+limit);
     let defaultLimit = +limit ? +limit : 10;
 

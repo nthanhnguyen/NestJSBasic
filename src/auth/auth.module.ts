@@ -12,7 +12,8 @@ import { RolesModule } from 'src/roles/roles.module';
 import { MailModule } from 'src/mail/mail.module';
 
 @Module({
-  imports: [UsersModule, PassportModule, RolesModule, MailModule,
+  imports: [UsersModule, PassportModule, RolesModule, MailModule, 
+    // UsersModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
