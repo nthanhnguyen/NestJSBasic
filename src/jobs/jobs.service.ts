@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, Injectable } from '@nestjs/common';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { IUser } from 'src/users/user.interface';
@@ -104,6 +104,30 @@ export class JobsService {
         current: currentPage, //trang hiện tại
         pageSize: limit, //số lượng bản ghi đã lấy
         pages: totalPages, //tổng số trang với điều kiện query
+        total: totalItems // tổng số phần tử (số bản ghi)
+      },
+      result //kết quả query
+    }
+  }
+
+  async findJobsForCompany(companyId: string, qs: string) {
+    const { filter, sort, population } = aqp(qs);
+    delete filter.companyId;
+
+    if (!mongoose.Types.ObjectId.isValid(companyId))
+      throw new BadGatewayException('Not found company')
+  
+    // Add company filter to the query
+    filter['company._id'] = companyId;
+
+    const totalItems = (await this.jobModel.find(filter)).length;
+
+    const result = await this.jobModel.find(filter)
+      .sort(sort as any)
+      .populate(population)
+      .exec();
+    return {
+      meta: {
         total: totalItems // tổng số phần tử (số bản ghi)
       },
       result //kết quả query

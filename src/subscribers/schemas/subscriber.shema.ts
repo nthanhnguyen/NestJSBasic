@@ -15,6 +15,9 @@ export class Subscriber {
     @Prop()
     skills: string[];
 
+    @Prop()
+    level: string;
+
 
     @Prop({ type: Object })
     createdBy: {

@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import mongoose from 'mongoose';
 
 export class CreateSubscriberDto {
@@ -21,4 +21,7 @@ export class CreateSubscriberDto {
         message: 'Skills không được để trống',
     })
     skills: string[];
+
+    @IsOptional()
+    level: string;
 }
