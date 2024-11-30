@@ -81,7 +81,6 @@ export class ResumesService {
     const { filter, sort, population, projection } = aqp(qs);
     delete filter.current;
     delete filter.pageSize;
-    delete filter.hrId;
 
     const hr = await this.userModel.findById(hrId);
     if (!hr) {

@@ -34,9 +34,10 @@ export class ResumesController {
   findJobForHr(
     @Query("current") currentPage: string,
     @Query("pageSize") limit: string,
-    @Query("hrId") hrId: string,
+    @User() user: IUser, 
     @Query() qs: string
   ) {
+    const hrId = user._id;
     return this.resumesService.findJobForHr(+currentPage, +limit, qs, hrId);
   }
 

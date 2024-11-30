@@ -40,10 +40,18 @@ export class JobsController {
     return this.jobsService.findAll(+currentPage, +limit, qs);
   }
 
+  @Get('/related-job')
+  @Public()
+  @ResponseMessage("Fetch list related job")
+  findRelatedJob(
+    @Query() qs: string,
+  ) {
+    return this.jobsService.findRelatedJob(qs);
+  }
+
   @Get('/company')
   @Public()
-  @SkipCheckPermission()
-  @ResponseMessage("Fetch list job with paginate")
+  @ResponseMessage("Fetch list job for company")
   findAllJobsForCompany(
     @Query("companyId") companyId: string,
     @Query() qs: string,
@@ -52,15 +60,27 @@ export class JobsController {
   }
 
   @Get('/employer')
-  @Public()
   @ResponseMessage("Fetch list job with paginate for Hr")
   findJobForHr(
     @Query("current") currentPage: string,
     @Query("pageSize") limit: string,
-    @Query("hrId") hrId: string,
     @Query() qs: string,
+    @User() user: IUser,
   ) {
+    const hrId = user._id;
     return this.jobsService.findJobForHr(+currentPage, +limit, qs, hrId);
+  }
+
+  @Get('/subscriber-job')
+  @SkipCheckPermission()
+  @ResponseMessage("Fetch list subscriber jobs")
+  findSubscriberJob(
+    @Query("current") currentPage: string,
+    @Query("pageSize") limit: string,
+    @Query() qs: string,
+    @User() user: IUser, 
+  ) {
+    return this.jobsService.findSubscriberJob(+currentPage, +limit, qs, user);
   }
 
   //@Public()

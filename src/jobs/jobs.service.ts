@@ -8,6 +8,8 @@ import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import mongoose from 'mongoose';
 import aqp from 'api-query-params';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
+import { Subscriber } from 'rxjs';
+import { SubscriberDocument } from 'src/subscribers/schemas/subscriber.shema';
 
 @Injectable()
 export class JobsService {
@@ -15,6 +17,7 @@ export class JobsService {
   constructor(
     @InjectModel(Job.name) private jobModel: SoftDeleteModel<JobDocument>,
     @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
+    @InjectModel(Subscriber.name) private subscriberModel: SoftDeleteModel<SubscriberDocument>,
   ) { }
 
   async create(createJobDto: CreateJobDto, user: IUser) {
@@ -46,7 +49,6 @@ export class JobsService {
     delete filter.pageSize;
     let offset = (+currentPage - 1) * (+limit);
     let defaultLimit = +limit ? +limit : 10;
-
     const totalItems = (await this.jobModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / defaultLimit);
 
@@ -68,11 +70,28 @@ export class JobsService {
     }
   }
 
+  async findRelatedJob(qs: string) {
+    const { filter, sort, population } = aqp(qs);
+
+    const totalItems = (await this.jobModel.find(filter)).length;
+
+    const result = await this.jobModel.find(filter)
+      .sort(sort as any)
+      .populate(population)
+      .exec();
+
+    return {
+      meta: {
+        total: totalItems // tổng số phần tử (số bản ghi)
+      },
+      result //kết quả query
+    }
+  }
+
   async findJobForHr(currentPage: number, limit: number, qs: string, hrId: string) {
     const { filter, sort, population } = aqp(qs);
     delete filter.current;
     delete filter.pageSize;
-    delete filter.hrId;
 
     const hr = await this.userModel.findById(hrId);
     if (!hr) {
@@ -133,6 +152,132 @@ export class JobsService {
       result //kết quả query
     }
   }
+
+  async findSubscriberJob(currentPage: number, limit: number, qs: string, user: IUser) {
+    const { filter, sort, population } = aqp(qs);
+    delete filter.current;
+    delete filter.pageSize;
+
+    const subscriber = await this.subscriberModel.findOne({email: user.email});
+
+    if (!subscriber) {
+
+      return {
+        meta: {
+          current: currentPage, //trang hiện tại
+          pageSize: limit, //số lượng bản ghi đã lấy
+          pages: 0, //tổng số trang với điều kiện query
+          total: 0 // tổng số phần tử (số bản ghi)
+        },
+        result: [] //kết quả query
+      }
+
+    }
+
+    filter['skills'] = { $in: subscriber.skills };
+
+    let offset = (+currentPage - 1) * (+limit);
+    let defaultLimit = +limit ? +limit : 10;
+
+    const totalItems = (await this.jobModel.find(filter)).length;
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+
+    const result = await this.jobModel.find(filter)
+      .skip(offset)
+      .limit(defaultLimit)
+      .sort(sort as any)
+      .populate(population)
+      .exec();
+
+
+    return {
+      meta: {
+        current: currentPage, //trang hiện tại
+        pageSize: limit, //số lượng bản ghi đã lấy
+        pages: totalPages, //tổng số trang với điều kiện query
+        total: totalItems // tổng số phần tử (số bản ghi)
+      },
+      result //kết quả query
+    }
+  }
+
+  // async findSubscriberJob(currentPage: number, limit: number, qs: string, user: IUser) {
+  //   const { filter, sort, population } = aqp(qs);
+  //   delete filter.current;
+  //   delete filter.pageSize;
+  
+  //   let offset = (+currentPage - 1) * (+limit);
+  //   let defaultLimit = +limit ? +limit : 10;
+  
+  //   const totalItems = (await this.jobModel.find(filter)).length;
+  //   const totalPages = Math.ceil(totalItems / defaultLimit);
+  
+  //   let result = await this.jobModel.find(filter)
+  //     .skip(offset)
+  //     .limit(defaultLimit)
+  //     .sort(sort as any)
+  //     .populate(population)
+  //     .exec();
+  
+  //   const subscriber = await this.subscriberModel.findOne({ email: user.email });
+  
+  //   if (subscriber) {
+  //     console.log('user.skill :>> ', subscriber.skills);
+  //     // console.log('result :>> ', result);
+  
+  //     // Thêm logic vào đây
+  //     // Nếu subscriber có kỹ năng
+  //     if (subscriber.skills && subscriber.skills.length > 0) {
+  //       // Tạo một hàm tính mức độ liên quan của job với subscriber
+  //       const calculateRelevance = (jobSkills: string[], subscriberSkills: string[]): number => {
+  //         let relevance = 0;
+  //         jobSkills.forEach(skill => {
+  //           if (subscriberSkills.includes(skill)) {
+  //             relevance += 1;
+  //           }
+  //         });
+  //         return relevance;
+  //       };
+  
+  //       // Thêm cấp độ (level) vào hàm tính độ liên quan
+  //       const calculateRelevanceWithLevel = (job: any, subscriber: any): number => {
+  //         let relevance = 0;
+  //         // Tính độ liên quan từ kỹ năng
+  //         relevance += calculateRelevance(job.skills, subscriber.skills);
+  //         // Tính độ liên quan từ cấp độ
+  //         if (job.level && subscriber.level) {
+  //           if (job.level === subscriber.level) {
+  //             relevance += 0.5; // Cấp độ trùng thì tăng thêm 0.5 điểm
+  //           }
+  //         }
+  //         return relevance;
+  //       };
+  
+  //       // Sắp xếp lại jobs theo mức độ liên quan giảm dần
+  //       result = result.map((job: any) => {
+  //         job.relevance = calculateRelevanceWithLevel(job, subscriber);
+  //         return job;
+  //       })
+  //       .filter((job: any) => job.relevance > 0) // Lọc những job có độ liên quan > 0
+  //       .sort((a: any, b: any) => b.relevance - a.relevance); // Sắp xếp giảm dần theo độ liên quan
+  
+  //       // Nếu không có job liên quan, trả về mảng rỗng
+  //       if (result.length === 0) {
+  //         result = [];
+  //       }
+  //     }
+  //   }
+  
+  //   return {
+  //     meta: {
+  //       current: currentPage, //trang hiện tại
+  //       pageSize: limit, //số lượng bản ghi đã lấy
+  //       pages: totalPages, //tổng số trang với điều kiện query
+  //       total: totalItems // tổng số phần tử (số bản ghi)
+  //     },
+  //     data: result
+  //   };
+  // }
 
   async findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id))

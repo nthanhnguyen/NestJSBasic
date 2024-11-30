@@ -96,6 +96,6 @@ export class SubscribersService {
 
   async getSkills(user: IUser) {
     const { email } = user;
-    return await this.subscriberModel.findOne({ email }, { skills: 1 })
+    return await this.subscriberModel.findOne({ email }, { skills: 1, level: 1 })
   }
 }
