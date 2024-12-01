@@ -40,14 +40,14 @@ export class JobsController {
     return this.jobsService.findAll(+currentPage, +limit, qs);
   }
 
-  @Get('/related-job')
-  @Public()
-  @ResponseMessage("Fetch list related job")
-  findRelatedJob(
-    @Query() qs: string,
-  ) {
-    return this.jobsService.findRelatedJob(qs);
-  }
+  // @Get('/related-job')
+  // @Public()
+  // @ResponseMessage("Fetch list related job")
+  // findRelatedJob(
+  //   @Query() qs: string,
+  // ) {
+  //   return this.jobsService.findRelatedJob(qs);
+  // }
 
   @Get('/company')
   @Public()

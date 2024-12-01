@@ -47,6 +47,10 @@ export class JobsService {
     const { filter, sort, population } = aqp(qs);
     delete filter.current;
     delete filter.pageSize;
+    if (filter.excludeJobId) {
+      filter._id = { $ne: filter.excludeJobId };
+      delete filter.excludeJobId;
+    }
     let offset = (+currentPage - 1) * (+limit);
     let defaultLimit = +limit ? +limit : 10;
     const totalItems = (await this.jobModel.find(filter)).length;
@@ -70,23 +74,23 @@ export class JobsService {
     }
   }
 
-  async findRelatedJob(qs: string) {
-    const { filter, sort, population } = aqp(qs);
+  // async findRelatedJob(qs: string) {
+  //   const { filter, sort, population } = aqp(qs);
 
-    const totalItems = (await this.jobModel.find(filter)).length;
+  //   const totalItems = (await this.jobModel.find(filter)).length;
 
-    const result = await this.jobModel.find(filter)
-      .sort(sort as any)
-      .populate(population)
-      .exec();
+  //   const result = await this.jobModel.find(filter)
+  //     .sort(sort as any)
+  //     .populate(population)
+  //     .exec();
 
-    return {
-      meta: {
-        total: totalItems // tổng số phần tử (số bản ghi)
-      },
-      result //kết quả query
-    }
-  }
+  //   return {
+  //     meta: {
+  //       total: totalItems // tổng số phần tử (số bản ghi)
+  //     },
+  //     result //kết quả query
+  //   }
+  // }
 
   async findJobForHr(currentPage: number, limit: number, qs: string, hrId: string) {
     const { filter, sort, population } = aqp(qs);
