@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsMongoId, IsNotEmpty, IsNotEmptyObject, IsObject, ValidateNested, isMongoId } from "class-validator";
+import { IsMongoId, IsNotEmpty, IsNotEmptyObject, IsObject, IsOptional, ValidateNested, isMongoId } from "class-validator";
 import mongoose from "mongoose";
 
 export class CreateResumeDto {
@@ -55,4 +55,10 @@ export class CreateUserCvDto {
         message: 'jobId is a job id',
     })
     jobId: mongoose.Schema.Types.ObjectId;
+
+    // @IsNotEmpty({
+    //     message: 'jobId không được để trống',
+    // })
+    @IsOptional()
+    skillList: string[];
 }

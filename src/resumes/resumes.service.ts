@@ -8,6 +8,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { IUser } from 'src/users/user.interface';
 import aqp from 'api-query-params';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
+import { join } from 'path';
+import fs from "fs";
+import mammoth from 'mammoth';  // For handling docx files
+import pdfParse from 'pdf-parse'; 
 
 @Injectable()
 export class ResumesService {
@@ -18,8 +22,27 @@ export class ResumesService {
   ) { }
 
   async create(createUserCvDto: CreateUserCvDto, user: IUser) {
-    const { url, companyId, jobId } = createUserCvDto;
-    const { email, _id } = user
+    const { url, companyId, jobId, skillList } = createUserCvDto;
+    const { email, _id } = user;
+
+    let fileContent = '';
+
+    const filePath = join(process.cwd(), 'public/images/resume', url); 
+
+    const fileExtension = url.split('.').pop()?.toLowerCase();
+    if (fileExtension === 'pdf') {
+      fileContent = await this.extractTextFromPDF(filePath);
+      // console.log('fileContent :>> ', fileContent);
+    } else if (fileExtension === 'docx' || fileExtension === 'doc') {
+      fileContent = await this.extractTextFromWord(filePath);
+    } else {
+      throw new Error('Unsupported file format');
+    }
+
+    const cleanedText = this.cleanText(fileContent);
+    const skillsFound = this.countSkillsInText(cleanedText, skillList);
+    const totalSkills = skillList.length;
+    const relevancePercentage = (skillsFound / totalSkills) * 100;
 
     const newCV = await this.resumeModel.create({
       url,
@@ -28,6 +51,7 @@ export class ResumesService {
       email,
       userId: _id,
       status: "PENDING",
+      relevancePercentage: Number(relevancePercentage.toFixed(2)),
       history: {
         status: "PENDING",
         updatedAt: new Date,
@@ -46,6 +70,49 @@ export class ResumesService {
       _id: newCV?._id,
       createdAt: newCV?.createdAt
     }
+  }
+
+  private async extractTextFromPDF(filePath: string): Promise<string> {
+    const dataBuffer = fs.readFileSync(filePath);
+    try {
+      const data = await pdfParse(dataBuffer);
+      return data.text;
+    } catch (error) {
+      throw new Error('Failed to parse PDF');
+    }
+  }
+
+  private async extractTextFromWord(filePath: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const docxBuffer = fs.readFileSync(filePath);
+      mammoth.extractRawText({ buffer: docxBuffer })
+        .then(result => resolve(result.value))
+        .catch(err => reject(err));
+    });
+  }
+
+  private cleanText(text: string): string {
+    // Replace multiple spaces with a single space, remove newlines, and trim leading/trailing spaces
+    let cleanedText = text.replace(/\s+/g, ' ').replace(/\n/g, ' ').trim().toLowerCase();
+
+    // cleanedText = cleanedText.replace(/([a-zA-Z0-9])\s+([a-zA-Z0-9])/g, '$1$2');
+
+    return cleanedText;
+  }
+
+  private countSkillsInText(text: string, skillsArray: string[]): number {
+    // console.log('cleaned text with spaces :>> ', text);
+    let skillsFound = 0;
+
+    // Check each skill in the array and see if it exists in the cleaned text
+    skillsArray.forEach(skill => {
+      const regex = new RegExp(`\\b${skill.toLowerCase()}\\b`, 'gi'); // Create a case-insensitive regex
+      if (regex.test(text)) {
+        skillsFound++;
+      }
+    });
+
+    return skillsFound;
   }
 
   async findAll(currentPage: number, limit: number, qs: string) {

@@ -26,6 +26,9 @@ export class Resume {
     @Prop({ type: mongoose.Schema.Types.ObjectId, ref: Job.name })
     jobId: mongoose.Schema.Types.ObjectId;
 
+    @Prop()
+    relevancePercentage: number;
+
     @Prop({ type: mongoose.Schema.Types.Array })
     history: {
         status: string;

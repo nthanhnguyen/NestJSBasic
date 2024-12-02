@@ -35,6 +35,30 @@ export class FilesController {
     }
   }
 
+  @Public()
+  @Post('upload-resume')
+  @ResponseMessage("Upload single file")
+  @UseInterceptors(FileInterceptor('fileUpload'))
+  @UseFilters(new HttpExceptionFilter())
+  uploadResumeFile(
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+      .addFileTypeValidator({
+        fileType: /^(application\/pdf|application\/msword|application\/vnd.openxmlformats-officedocument.wordprocessingml.document)$/i,
+      })
+        .addMaxSizeValidator({
+          maxSize: 1024 * 1024
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+        }),
+    ) file: Express.Multer.File,
+  ){
+    return {
+      fileName: file.filename
+    }
+  }
+
   @Get()
   findAll() {
     return this.filesService.findAll();
