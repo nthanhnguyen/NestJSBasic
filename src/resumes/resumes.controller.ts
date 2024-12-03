@@ -5,6 +5,7 @@ import { UpdateResumeDto } from './dto/update-resume.dto';
 import { IUser } from 'src/users/user.interface';
 import { Public, ResponseMessage, User } from 'src/auth/decorator/customize';
 import { ApiTags } from '@nestjs/swagger';
+import { Resume } from './schemas/resume.schema';
 
 @ApiTags('resumes')
 @Controller('resumes')
@@ -50,6 +51,17 @@ export class ResumesController {
   @ResponseMessage("Update status resume")
   update(@Param('id') id: string, @Body('status') status: string, @User() user: IUser) {
     return this.resumesService.update(id, status, user);
+  }
+
+  @Post('/update-statuses')
+  @ResponseMessage("Update many statuses for resume")
+  updateManyStatus(@Body('ids') ids: string[], @Body('status') status: string, @User() user: IUser) {
+    const updatedResumes: any[] = [];
+    ids.forEach((id)=>{
+      const resume = this.resumesService.update(id, status, user);
+      updatedResumes.push(resume);
+    })
+    return updatedResumes;
   }
 
   @Delete(':id')
