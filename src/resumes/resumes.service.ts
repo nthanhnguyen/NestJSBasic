@@ -218,6 +218,47 @@ export class ResumesService {
     return updated;
   }
 
+  async updateResumeFile(_id: string, url: string, user: IUser, skillList: string[]) {
+    if (!mongoose.Types.ObjectId.isValid(_id))
+      throw new BadGatewayException('Not found resumes');
+
+    let fileContent = '';
+
+    console.log('id :>> ', _id);
+    console.log('url :>> ', url);
+    console.log('skillList :>> ', skillList);
+
+    const filePath = join(process.cwd(), 'public/images/resume', url); 
+
+    const fileExtension = url.split('.').pop()?.toLowerCase();
+    if (fileExtension === 'pdf') {
+      fileContent = await this.extractTextFromPDF(filePath);
+      // console.log('fileContent :>> ', fileContent);
+    } else if (fileExtension === 'docx' || fileExtension === 'doc') {
+      fileContent = await this.extractTextFromWord(filePath);
+    } else {
+      throw new Error('Unsupported file format');
+    }
+
+    const cleanedText = this.cleanText(fileContent);
+    const skillsFound = this.countSkillsInText(cleanedText, skillList);
+    const totalSkills = skillList.length;
+    const relevancePercentage = (skillsFound / totalSkills) * 100;
+
+    const updated = await this.resumeModel.updateOne(
+      { _id },
+      {
+        url,
+        relevancePercentage,
+        updatedBy: {
+          _id: user._id,
+          email: user.email
+        },
+      }
+    );
+    return updated;
+  }
+
 
   async remove(id: string, user: IUser) {
     if (!mongoose.Types.ObjectId.isValid(id))
@@ -246,5 +287,33 @@ export class ResumesService {
           select: { name: 1 }
         }
       ]);
+  }
+
+  async checkApplying(jobId: string, userId: string) {
+    if (!mongoose.Types.ObjectId.isValid(userId))
+      throw new BadGatewayException('Not found user')
+    if (!mongoose.Types.ObjectId.isValid(jobId))
+      throw new BadGatewayException('Not found job')
+    const resume = await this.resumeModel.findOne({jobId, userId});
+    if (resume) {
+      if (resume.status === 'PENDING') {
+        return {
+          resumeId: resume._id,
+          isApplied: true,
+          isPending: true,
+          url: resume.url,
+        };
+      } else return {
+            resumeId: resume._id,
+            isApplied: true,
+            isPending: false,
+            url: resume.url,
+      };
+
+    } else return {
+          isApplied: false,
+          isPending: false,
+          url: '',
+        };
   }
 }

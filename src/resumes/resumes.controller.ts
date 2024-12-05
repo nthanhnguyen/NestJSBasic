@@ -3,7 +3,7 @@ import { ResumesService } from './resumes.service';
 import { CreateResumeDto, CreateUserCvDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 import { IUser } from 'src/users/user.interface';
-import { Public, ResponseMessage, User } from 'src/auth/decorator/customize';
+import { Public, ResponseMessage, SkipCheckPermission, User } from 'src/auth/decorator/customize';
 import { ApiTags } from '@nestjs/swagger';
 import { Resume } from './schemas/resume.schema';
 
@@ -47,10 +47,27 @@ export class ResumesController {
     return this.resumesService.findOne(id);
   }
 
+  @Get('check-applying/:jobId')
+  @SkipCheckPermission()
+  @ResponseMessage("Check applying job")
+  async checkApplying(
+    @Param('jobId') jobId: string,
+    @User() user: IUser,
+  ) {
+    return await this.resumesService.checkApplying(jobId, user._id)
+  }
+
   @Patch(':id')
   @ResponseMessage("Update status resume")
-  update(@Param('id') id: string, @Body('status') status: string, @User() user: IUser) {
+  updateStatus(@Param('id') id: string, @Body('status') status: string, @User() user: IUser) {
     return this.resumesService.update(id, status, user);
+  }
+
+  @Patch('update-file/:id')
+  @SkipCheckPermission()
+  @ResponseMessage("Update resume file")
+  updateResumeFile(@Param('id') id: string, @Body('url') url: string, @Body('skillList') skillList: string[], @User() user: IUser) {
+    return this.resumesService.updateResumeFile(id, url, user, skillList);
   }
 
   @Post('/update-statuses')
@@ -63,6 +80,7 @@ export class ResumesController {
     })
     return updatedResumes;
   }
+  
 
   @Delete(':id')
   @ResponseMessage("Delete a resume")
