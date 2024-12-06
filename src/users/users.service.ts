@@ -42,6 +42,7 @@ export class UsersService {
       phoneNo,
       gender,
       address,
+      accountStatus: 'ACTIVATED',
       role,
       company,
       createdBy: {

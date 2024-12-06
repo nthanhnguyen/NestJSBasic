@@ -224,10 +224,6 @@ export class ResumesService {
 
     let fileContent = '';
 
-    console.log('id :>> ', _id);
-    console.log('url :>> ', url);
-    console.log('skillList :>> ', skillList);
-
     const filePath = join(process.cwd(), 'public/images/resume', url); 
 
     const fileExtension = url.split('.').pop()?.toLowerCase();

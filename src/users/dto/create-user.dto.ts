@@ -105,7 +105,7 @@ export class UserLoginDto {
     @IsNotEmpty()
     @ApiProperty({
         example: '123456',
-        description: '密码',
+        description: 'description',
     })
     readonly password: string;
 }
