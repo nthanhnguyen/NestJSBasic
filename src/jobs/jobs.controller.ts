@@ -29,6 +29,16 @@ export class JobsController {
     };
   }
 
+  // @Post('/update-date')
+  // @Public()
+  // @ResponseMessage("update date Job")
+  // async updateDate(
+  //   @Body("startDate") startDate: Date,
+  //   @Body("endDate") endDate: Date,
+  // ) {
+  //   return await this.jobsService.updateDate(startDate, endDate)
+  // }
+
   @Get()
   @Public()
   @ResponseMessage("Fetch list job with paginate")

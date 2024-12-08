@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadGatewayException, BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserResumeDto } from './dto/create-user-resume.dto';
 import { UpdateUserResumeDto } from './dto/update-user-resume.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -104,7 +104,18 @@ export class UserResumesService {
     );
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} userResume`;
+  async remove(id: string, user: IUser) {
+    if (!mongoose.Types.ObjectId.isValid(id))
+      throw new BadGatewayException('Not found resume')
+
+    await this.resumeModel.updateOne({ _id: id },
+      {
+        deletedBy: {
+          _id: user._id,
+          email: user.email
+        }
+      });
+    return this.resumeModel.softDelete({ _id: id });
   }
+
 }

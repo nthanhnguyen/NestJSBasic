@@ -289,6 +289,18 @@ export class JobsService {
     return await this.jobModel.findOne({ _id: id });
   }
 
+  // async updateDate(startDate: Date, endDate: Date) {
+  //   const jobs = await this.jobModel.find()
+  //   jobs.forEach(async (job)=>{
+  //     console.log('job._id :>> ', job._id);
+  //     await this.jobModel.updateOne({ _id: job._id },
+  //       {
+  //         startDate,
+  //         endDate,
+  //       });
+  //   })
+  //   return true;
+  // }
 
   async update(id: string, updateJobDto: UpdateJobDto, user: IUser) {
     return await this.jobModel.updateOne({ _id: id },
