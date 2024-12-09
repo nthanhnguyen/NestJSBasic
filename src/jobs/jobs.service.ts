@@ -51,6 +51,10 @@ export class JobsService {
       filter._id = { $ne: filter.excludeJobId };
       delete filter.excludeJobId;
     }
+    // if (filter.excludeNotActive) {
+    //   //To do
+    //   delete filter.excludeNotActive;
+    // }
     let offset = (+currentPage - 1) * (+limit);
     let defaultLimit = +limit ? +limit : 10;
     const totalItems = (await this.jobModel.find(filter)).length;

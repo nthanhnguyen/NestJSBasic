@@ -19,7 +19,6 @@ export class AuthService {
         private jwtService: JwtService,
         private configService: ConfigService,
         private rolesService: RolesService,
-        private mailerService: MailerService, 
         private mailService: MailService, 
     ) { }
 
