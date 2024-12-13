@@ -2,12 +2,12 @@ import { IsNotEmpty } from "class-validator";
 
 export class CreateEmployerRegistrationDto {
   @IsNotEmpty({
-      message: 'Name không được để trống',
+      message: 'Họ tên không được để trống',
   })
   name: string;
 
   @IsNotEmpty({
-    message: 'Position không được để trống',
+    message: 'Chức vụ không được để trống',
   })
   position: string;
 
@@ -17,7 +17,7 @@ export class CreateEmployerRegistrationDto {
   email: string;
 
   @IsNotEmpty({
-    message: 'Number phone không được để trống',
+    message: 'Số điện thoại không được để trống',
   })
   phone: string;
 
@@ -27,12 +27,17 @@ export class CreateEmployerRegistrationDto {
   address: string;
 
   @IsNotEmpty({
-    message: 'Company address không được để trống',
+    message: 'Tên công ty không được để trống',
+  })
+  companyName: string;
+
+  @IsNotEmpty({
+    message: 'Địa chỉ công ty không được để trống',
   })
   companyAddress: string;
 
   @IsNotEmpty({
-    message: 'Company url không được để trống',
+    message: 'Website của công ty không được để trống',
   })
   companyUrl: string;
 
