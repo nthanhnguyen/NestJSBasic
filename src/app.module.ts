@@ -19,6 +19,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { HealthModule } from './health/health.module';
 import { UserResumesModule } from './user-resumes/user-resumes.module';
+import { EmployerRegistrationModule } from './employer-registration/employer-registration.module';
 
 @Module({
   imports: [
@@ -55,7 +56,8 @@ import { UserResumesModule } from './user-resumes/user-resumes.module';
     SubscribersModule,
     MailModule,
     HealthModule,
-    UserResumesModule
+    UserResumesModule,
+    EmployerRegistrationModule
   ],
   controllers: [AppController],
   providers: [AppService],

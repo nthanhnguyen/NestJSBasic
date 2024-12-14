@@ -47,10 +47,26 @@ export class JobsService {
     const { filter, sort, population } = aqp(qs);
     delete filter.current;
     delete filter.pageSize;
+    
     if (filter.excludeJobId) {
       filter._id = { $ne: filter.excludeJobId };
       delete filter.excludeJobId;
     }
+    
+    // Xử lý excludeNotActive
+    if (filter.excludeNotActive) {
+      filter.isActive = true; // Loại các job có isActive = false
+      delete filter.excludeNotActive;
+    }
+
+    // Xử lý excludeByStartEndDate
+    if (filter.excludeByStartEndDate) {
+      const currentDate = new Date();
+      filter.startDate = { $lte: currentDate };  // Chỉ lấy những job có startDate trước hoặc bằng hiện tại
+      filter.endDate = { $gte: currentDate };    // Chỉ lấy những job có endDate sau hoặc bằng hiện tại
+      delete filter.excludeByStartEndDate;
+    }
+
     let offset = (+currentPage - 1) * (+limit);
     let defaultLimit = +limit ? +limit : 10;
     const totalItems = (await this.jobModel.find(filter)).length;
@@ -179,6 +195,20 @@ export class JobsService {
     }
 
     filter['skills'] = { $in: subscriber.skills };
+
+    // Xử lý excludeNotActive
+    if (filter.excludeNotActive) {
+      filter.isActive = true; // Loại các job có isActive = false
+      delete filter.excludeNotActive;
+    }
+
+    // Xử lý excludeByStartEndDate
+    if (filter.excludeByStartEndDate) {
+      const currentDate = new Date();
+      filter.startDate = { $lte: currentDate };  // Chỉ lấy những job có startDate trước hoặc bằng hiện tại
+      filter.endDate = { $gte: currentDate };    // Chỉ lấy những job có endDate sau hoặc bằng hiện tại
+      delete filter.excludeByStartEndDate;
+    }
 
     let offset = (+currentPage - 1) * (+limit);
     let defaultLimit = +limit ? +limit : 10;
