@@ -1,6 +1,6 @@
 import { BadGatewayException, BadRequestException, Injectable } from '@nestjs/common';
-import { CreateResumeDto, CreateUserCvDto } from './dto/create-resume.dto';
-import { UpdateResumeDto } from './dto/update-resume.dto';
+import { CreateUserCvDto } from './dto/create-resume.dto';
+// import { UpdateResumeDto } from './dto/update-resume.dto';
 import mongoose from 'mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { Resume, ResumeDocument } from './schemas/resume.schema';
@@ -12,6 +12,7 @@ import { join } from 'path';
 import fs from "fs";
 import mammoth from 'mammoth';  // For handling docx files
 import pdfParse from 'pdf-parse'; 
+import * as ExcelJS from 'exceljs';
 
 @Injectable()
 export class ResumesService {
@@ -312,4 +313,84 @@ export class ResumesService {
           url: '',
         };
   }
+
+  
+  // private formatHeaderRow(cell: ExcelJS.Cell): ExcelJS.Cell {
+  //   cell.font = {
+  //       bold: true,
+  //   };
+  //   cell.alignment = {
+  //       vertical: 'bottom',
+  //       horizontal: 'center',
+  //       wrapText: true,
+  //   };
+  //   cell.border = {
+  //       top: { style: 'thin' },
+  //       left: { style: 'thin' },
+  //       bottom: { style: 'thin' },
+  //       right: { style: 'thin' },
+  //   };
+  //   return cell;
+  // }
+
+  // private async getJobReportSummary(
+  //   price: number,
+  //   month: number,
+  //   year: number,
+  // ): Promise<
+  //   {
+  //     name: string;
+  //     companyName: string;
+  //     totalJob: number;
+  //     totalResume: number;
+  //     approvedResume: number;
+  //     transactionYear: number;
+  //     transactionMonth: number;
+  //   }[]
+  // > {
+  //     return await this.recordsRepo
+  //       .createQueryBuilder('r')
+  //       .select('clinic.nameCn', 'clinicName')
+  //       .addSelect('COUNT(r.voucher)', 'totalVoucher') // Total vouchers
+  //       .addSelect('COUNT(CASE WHEN r.clientSignature IS NULL OR r.clientSignature = "" THEN 1 END)', 'notSignedVoucher') // Not signed vouchers
+  //       .leftJoin('r.clinic', 'clinic')
+  //       // .where('r.verifyTypeId <> :verifyTypeId', { verifyTypeId: this.config.get('verifyTypeId.payMe') })
+  //       .andWhere('r.status = :status', { status: 1 })
+  //       .andWhere('r.refundTime IS NULL')
+  //       .andWhere('r.transactionYear = :year', { year })
+  //       .andWhere('r.transactionMonth = :month', { month })
+  //       .groupBy('clinic.clinicId')
+  //       .getRawMany();
+  // }
+
+  // async generateJobMonthlyReport(price: number, month: number, year: number) {
+  //   const workbook = new ExcelJS.Workbook();
+
+  //   // The 'Report' worksheet
+  //   const jobRecord = await this.getJobReportSummary(price, month, year);
+  //   const reportWorksheet = workbook.addWorksheet('Report');
+  //   reportWorksheet.properties.defaultRowHeight = 15;
+  //   reportWorksheet.columns = [
+  //       { key: 'name', header: 'Tên hiển thị Nhà tuyển dụng', width: 50 },
+  //       { key: 'companyName', header: 'Tên công ty', width: 20 },
+  //       { key: 'totalJob', header: 'Số lượng Job', width: 30 },
+  //       { key: 'totalResume', header: 'Số lượng Job', width: 30 },
+  //       { key: 'approvedResume', header: 'Số lượng CV được Approved', width: 30 },
+  //       { key: 'transactionYear', header: 'Transaction Year', width: 10 },
+  //       { key: 'transactionMonth', header: 'Transaction Month', width: 10 },
+  //   ];
+  //   reportWorksheet.getRow(1).eachCell(this.formatHeaderRow);
+  //   jobRecord.forEach(({ name, companyName, totalJob, totalResume, approvedResume, transactionYear, transactionMonth }) => {
+  //       const contentRow = reportWorksheet.addRow([
+  //         name,
+  //         companyName,
+  //         totalJob,
+  //         totalResume,
+  //         approvedResume,
+  //         transactionYear,
+  //         transactionMonth,
+  //       ]);
+  //       contentRow.eachCell(this.formatHeaderRow);
+  //   });
+  // }
 }

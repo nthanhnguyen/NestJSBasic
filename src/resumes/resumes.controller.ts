@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Response } from '@nestjs/common';
 import { ResumesService } from './resumes.service';
 import { CreateResumeDto, CreateUserCvDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
@@ -6,6 +6,7 @@ import { IUser } from 'src/users/user.interface';
 import { Public, ResponseMessage, SkipCheckPermission, User } from 'src/auth/decorator/customize';
 import { ApiTags } from '@nestjs/swagger';
 import { Resume } from './schemas/resume.schema';
+import { GenerateJobMonthlyReportDto } from './dto/generate-job-monthly-report.dto';
 
 @ApiTags('resumes')
 @Controller('resumes')
@@ -95,5 +96,19 @@ export class ResumesController {
   @ResponseMessage("Get Resumes by User")
   findOneByUser(@User() user: IUser) {
     return this.resumesService.findByUsers(user);
+  }
+
+  @Post('jobMonthlyReport')
+  @ResponseMessage("Export a job monthly report for admin")
+  async generateJobMonthlyReport(
+    @Body() { price, month, year }: GenerateJobMonthlyReportDto,
+    @User() user: IUser,
+    @Response() res: Response,
+  ) {
+    // let newJob = await this.jobsService.create(createJobDto, user)
+    // return {
+    //   _id: newJob?._id,
+    //   createdAt: newJob?.createdAt
+    // };
   }
 }
