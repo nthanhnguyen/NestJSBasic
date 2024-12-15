@@ -1,6 +1,5 @@
 import { BadGatewayException, BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserCvDto } from './dto/create-resume.dto';
-// import { UpdateResumeDto } from './dto/update-resume.dto';
 import mongoose from 'mongoose';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { Resume, ResumeDocument } from './schemas/resume.schema';
@@ -12,7 +11,6 @@ import { join } from 'path';
 import fs from "fs";
 import mammoth from 'mammoth';  // For handling docx files
 import pdfParse from 'pdf-parse'; 
-import * as ExcelJS from 'exceljs';
 
 @Injectable()
 export class ResumesService {
@@ -333,34 +331,96 @@ export class ResumesService {
   //   return cell;
   // }
 
+  // private formatCellRow(cell: ExcelJS.Cell): ExcelJS.Cell {
+  //   // cell.font = {
+  //   //     bold: true,
+  //   // };
+  //   cell.alignment = {
+  //       vertical: 'bottom',
+  //       horizontal: 'center',
+  //       wrapText: true,
+  //   };
+  //   cell.border = {
+  //       top: { style: 'thin' },
+  //       left: { style: 'thin' },
+  //       bottom: { style: 'thin' },
+  //       right: { style: 'thin' },
+  //   };
+  //   return cell;
+  // }
+
+  // private formatCurrency(value: number): string {
+  //   return `${(value + "").replace(/\B(?=(\d{3})+(?!\d))/g, ',')} đ`;
+  // }
+
   // private async getJobReportSummary(
   //   price: number,
   //   month: number,
   //   year: number,
-  // ): Promise<
-  //   {
-  //     name: string;
-  //     companyName: string;
-  //     totalJob: number;
-  //     totalResume: number;
-  //     approvedResume: number;
-  //     transactionYear: number;
-  //     transactionMonth: number;
-  //   }[]
-  // > {
-  //     return await this.recordsRepo
-  //       .createQueryBuilder('r')
-  //       .select('clinic.nameCn', 'clinicName')
-  //       .addSelect('COUNT(r.voucher)', 'totalVoucher') // Total vouchers
-  //       .addSelect('COUNT(CASE WHEN r.clientSignature IS NULL OR r.clientSignature = "" THEN 1 END)', 'notSignedVoucher') // Not signed vouchers
-  //       .leftJoin('r.clinic', 'clinic')
-  //       // .where('r.verifyTypeId <> :verifyTypeId', { verifyTypeId: this.config.get('verifyTypeId.payMe') })
-  //       .andWhere('r.status = :status', { status: 1 })
-  //       .andWhere('r.refundTime IS NULL')
-  //       .andWhere('r.transactionYear = :year', { year })
-  //       .andWhere('r.transactionMonth = :month', { month })
-  //       .groupBy('clinic.clinicId')
-  //       .getRawMany();
+  // ): Promise<{
+  //   companyName: string;
+  //   totalJob: number;
+  //   totalResume: number;
+  //   approvedResume: number;
+  //   // price: number;
+  //   totalPrice: number;
+  //   // transactionYear: number;
+  //   // transactionMonth: number;
+  // }[]> {
+  //   // Aggregate query để lấy thông tin theo công ty
+  //   return await this.resumeModel.aggregate([
+  //     {
+  //       $lookup: {
+  //         from: 'jobs', // Tên collection của bảng Job
+  //         localField: 'jobId',
+  //         foreignField: '_id',
+  //         as: 'jobDetails',
+  //       },
+  //     },
+  //     {
+  //       $match: {
+  //         "jobDetails.startDate": {
+  //           $gte: new Date(year, month - 1, 1), // Ngày đầu tiên của tháng
+  //           $lt: new Date(year, month, 1), // Ngày đầu tiên của tháng sau
+  //         },
+  //       },
+  //     },
+  //     {
+  //       $group: {
+  //         _id: '$companyId',
+  //         totalJob: { $sum: 1 },
+  //         totalResume: { $sum: 1 },
+  //         approvedResume: {
+  //           $sum: { $cond: [{ $eq: ['$status', 'APPROVED'] }, 1, 0] },
+  //         },
+  //       },
+  //     },
+  //     {
+  //       $lookup: {
+  //         from: 'companies', // Tên collection của bảng Company
+  //         localField: '_id',
+  //         foreignField: '_id',
+  //         as: 'companyDetails',
+  //       },
+  //     },
+  //     {
+  //       $unwind: {
+  //         path: '$companyDetails',
+  //       },
+  //     },
+  //     {
+  //       $project: {
+  //         companyName: '$companyDetails.name', // Lấy tên công ty
+  //         totalJob: 1,
+  //         totalResume: 1,
+  //         approvedResume: 1,
+  //         // price: price, // Giá per job
+  //         totalPrice: { $multiply: ['$totalJob', price] }, // Tính totalPrice
+  //         // transactionMonth: month,
+  //         // transactionYear: year,
+  //       },
+  //     },
+  //   ]);
   // }
 
   // async generateJobMonthlyReport(price: number, month: number, year: number) {
@@ -368,29 +428,38 @@ export class ResumesService {
 
   //   // The 'Report' worksheet
   //   const jobRecord = await this.getJobReportSummary(price, month, year);
+  //   console.log('jobRecord :>> ', jobRecord);
   //   const reportWorksheet = workbook.addWorksheet('Report');
   //   reportWorksheet.properties.defaultRowHeight = 15;
   //   reportWorksheet.columns = [
-  //       { key: 'name', header: 'Tên hiển thị Nhà tuyển dụng', width: 50 },
-  //       { key: 'companyName', header: 'Tên công ty', width: 20 },
-  //       { key: 'totalJob', header: 'Số lượng Job', width: 30 },
-  //       { key: 'totalResume', header: 'Số lượng Job', width: 30 },
-  //       { key: 'approvedResume', header: 'Số lượng CV được Approved', width: 30 },
-  //       { key: 'transactionYear', header: 'Transaction Year', width: 10 },
-  //       { key: 'transactionMonth', header: 'Transaction Month', width: 10 },
+  //       { key: 'companyName', header: 'Tên công ty', width: 50 },
+  //       { key: 'totalJob', header: 'Số lượng Job', width: 20 },
+  //       { key: 'totalResume', header: 'Số lượng ứng viên ứng tuyển', width: 20 },
+  //       { key: 'approvedResume', header: 'Số lượng CV được Approved', width: 20 },
+  //       { key: 'price', header: 'Phí cho 1 job', width: 30 },
+  //       { key: 'totalPrice', header: 'Phí đăng tuyển', width: 30 },
+  //       { key: 'month', header: 'Tháng giao dịch', width: 20 },
+  //       { key: 'year', header: 'Năm giao dịch', width: 20 },
   //   ];
   //   reportWorksheet.getRow(1).eachCell(this.formatHeaderRow);
-  //   jobRecord.forEach(({ name, companyName, totalJob, totalResume, approvedResume, transactionYear, transactionMonth }) => {
+  //   console.log('jobRecord :>> ', jobRecord);
+  //   jobRecord.forEach(({ companyName, totalJob, totalResume, approvedResume, totalPrice }) => {
+  //       const formattedPrice = this.formatCurrency(price);
+  //       const formattedTotalPrice = this.formatCurrency(totalPrice);
+
   //       const contentRow = reportWorksheet.addRow([
-  //         name,
   //         companyName,
   //         totalJob,
   //         totalResume,
   //         approvedResume,
-  //         transactionYear,
-  //         transactionMonth,
+  //         formattedPrice,
+  //         formattedTotalPrice,
+  //         month,
+  //         year,
   //       ]);
-  //       contentRow.eachCell(this.formatHeaderRow);
+  //       contentRow.eachCell(this.formatCellRow);
   //   });
+
+  //   return workbook;
   // }
 }

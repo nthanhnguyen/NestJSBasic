@@ -10,6 +10,7 @@ import aqp from 'api-query-params';
 import { User, UserDocument } from 'src/users/schemas/user.schema';
 import { Subscriber } from 'rxjs';
 import { SubscriberDocument } from 'src/subscribers/schemas/subscriber.shema';
+import * as ExcelJS from 'exceljs';
 
 @Injectable()
 export class JobsService {
@@ -353,4 +354,137 @@ export class JobsService {
       });
     return this.jobModel.softDelete({ _id: id });
   }
+
+    private formatHeaderRow(cell: ExcelJS.Cell): ExcelJS.Cell {
+      cell.font = {
+          bold: true,
+      };
+      cell.alignment = {
+          vertical: 'bottom',
+          horizontal: 'center',
+          wrapText: true,
+      };
+      cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+      };
+      return cell;
+    }
+  
+    private formatCellRow(cell: ExcelJS.Cell): ExcelJS.Cell {
+      // cell.font = {
+      //     bold: true,
+      // };
+      cell.alignment = {
+          vertical: 'bottom',
+          horizontal: 'center',
+          wrapText: true,
+      };
+      cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' },
+      };
+      return cell;
+    }
+  
+    private formatCurrency(value: number): string {
+      return `${(value + "").replace(/\B(?=(\d{3})+(?!\d))/g, ',')} đ`;
+    }
+
+    private async getJobReportSummary(
+      price: number,
+      month: number,
+      year: number,
+    ): Promise<{
+      companyName: string;
+      totalJob: number;
+      totalResume: number;
+      approvedResume: number;
+      totalPrice: number;
+    }[]> {
+      // Aggregate query để lấy thông tin theo công ty
+      return await this.jobModel.aggregate([
+        {
+          $match: {
+            createdAt: {
+              $gte: new Date(year, month - 1, 1), // Ngày đầu tiên của tháng
+              $lt: new Date(year, month, 1), // Ngày đầu tiên của tháng sau
+            },
+          },
+        },
+        {
+          $lookup: {
+            from: 'resumes', // Tên collection của bảng Resume
+            localField: '_id',
+            foreignField: 'jobId',
+            as: 'resumeDetails',
+          },
+        },
+
+        {
+          $group: {
+            _id: '$company._id', // Nhóm theo companyId
+            totalJob: { $sum: 1 }, // Tính tổng số công việc
+            totalResume: { $sum: { $size: '$resumeDetails' } }, // Tính tổng số resume của công ty
+            approvedResume: {
+              $sum: {
+                $cond: [{ $eq: ['$status', 'APPROVED'] }, 1, 0], // Đếm số lượng resume đã được approve
+              },
+            },
+            companyName: { $first: '$company.name' }, // Lấy tên công ty từ trường company.name trong Job
+          },
+        },
+        {
+          $project: {
+            companyName: 1, // Lấy tên công ty
+            totalJob: 1,
+            totalResume: 1,
+            approvedResume: 1,
+            totalPrice: { $multiply: ['$totalJob', price] }, // Tính totalPrice
+          },
+        },
+      ]);
+    }
+    
+    async generateJobMonthlyReport(price: number, month: number, year: number) {
+      const workbook = new ExcelJS.Workbook();
+  
+      // The 'Report' worksheet
+      const jobRecord = await this.getJobReportSummary(price, month, year);
+      const reportWorksheet = workbook.addWorksheet('Report');
+      reportWorksheet.properties.defaultRowHeight = 15;
+      reportWorksheet.columns = [
+          { key: 'companyName', header: 'Tên công ty', width: 50 },
+          { key: 'totalJob', header: 'Số lượng Job', width: 20 },
+          { key: 'totalResume', header: 'Số lượng ứng viên ứng tuyển', width: 20 },
+          { key: 'approvedResume', header: 'Số lượng CV được Approved', width: 20 },
+          { key: 'price', header: 'Phí cho 1 job', width: 30 },
+          { key: 'totalPrice', header: 'Phí đăng tuyển', width: 30 },
+          { key: 'month', header: 'Tháng giao dịch', width: 20 },
+          { key: 'year', header: 'Năm giao dịch', width: 20 },
+      ];
+      reportWorksheet.getRow(1).eachCell(this.formatHeaderRow);
+      jobRecord.forEach(({ companyName, totalJob, totalResume, approvedResume, totalPrice }) => {
+          const formattedPrice = this.formatCurrency(price);
+          const formattedTotalPrice = this.formatCurrency(totalPrice);
+  
+          const contentRow = reportWorksheet.addRow([
+            companyName,
+            totalJob,
+            totalResume,
+            approvedResume,
+            formattedPrice,
+            formattedTotalPrice,
+            month,
+            year,
+          ]);
+          contentRow.eachCell(this.formatCellRow);
+      });
+  
+      return workbook;
+    }
 }

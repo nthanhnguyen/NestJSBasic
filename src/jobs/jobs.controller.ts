@@ -1,10 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, Response } from '@nestjs/common';
 import { JobsService } from './jobs.service';
 import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { IUser } from 'src/users/user.interface';
 import { Public, ResponseMessage, SkipCheckPermission, User } from 'src/auth/decorator/customize';
 import { ApiTags } from '@nestjs/swagger';
+import { GenerateJobMonthlyReportDto } from './dto/generate-job-monthly-report.dto';
+import moment from 'moment-timezone';
+import { Response as ExpressResponse } from 'express';
+import { setExcelHeaders } from './excel.config';
+
 
 @ApiTags('jobs')
 @Controller('jobs')
@@ -115,5 +120,17 @@ export class JobsController {
     @User() user: IUser
   ) {
     return this.jobsService.remove(id, user);
+  }
+
+  @Post('jobMonthlyReport')
+  @ResponseMessage("Export a job monthly report for admin")
+  async generateJobMonthlyReport(
+    @Body() { price, month, year }: GenerateJobMonthlyReportDto,
+    @Response() res: ExpressResponse,
+  ) {
+    const workbook = await this.jobsService.generateJobMonthlyReport(price, month, year);
+    setExcelHeaders(res, `job-monthly-report-${moment([year, month - 1]).format('YYYY-MM')}`);
+    await workbook.xlsx.write(res);
+    return res.end();
   }
 }
