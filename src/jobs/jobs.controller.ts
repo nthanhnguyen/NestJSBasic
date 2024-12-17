@@ -16,11 +16,6 @@ import { setExcelHeaders } from './excel.config';
 export class JobsController {
   constructor(private readonly jobsService: JobsService) { }
 
-  // @Post()
-  // create(@Body() createJobDto: CreateJobDto) {
-  //   return this.jobsService.create(createJobDto);
-  // }
-
   @Post()
   @ResponseMessage("Create a new Job")
   async create(
@@ -43,6 +38,12 @@ export class JobsController {
   // ) {
   //   return await this.jobsService.updateDate(startDate, endDate)
   // }
+
+  @Get('number-of-jobs')
+  @ResponseMessage("Get number of jobs")
+  getNumberOfJobs() {
+    return this.jobsService.getNumberOfJobs();
+  }
 
   @Get()
   @Public()

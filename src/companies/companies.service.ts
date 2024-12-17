@@ -21,12 +21,6 @@ export class CompaniesService {
         email: user.email
       }
     })
-    // let company = await this.userModel.create({
-    //   name: createCompanyDto.name,
-    //   address: createCompanyDto.address,
-    //   description: createCompanyDto.description
-    // })
-    // return company;
   }
 
   async findAll(currentPage: number, limit: number, qs: string) {
@@ -55,6 +49,11 @@ export class CompaniesService {
       },
       result //kết quả query
     }
+  }
+
+  async getNumberOfCompanies() {
+    const totalItems = (await this.companyModel.find()).length;
+    return {totalItems};
   }
 
   async findOne(id: string) {

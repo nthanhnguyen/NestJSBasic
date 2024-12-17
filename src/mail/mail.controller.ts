@@ -9,12 +9,15 @@ import { Job, JobDocument } from 'src/jobs/schemas/job.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Cron } from '@nestjs/schedule';
 import { ApiTags } from '@nestjs/swagger';
+import { url } from 'inspector';
+import { ConfigService } from '@nestjs/config';
 
 @ApiTags('mail')
 @Controller('mail')
 export class MailController {
   constructor(private readonly mailService: MailService,
     private mailerService: MailerService,
+    private configService: ConfigService,
 
     @InjectModel(Subscriber.name)
     private subscriberModel: SoftDeleteModel<SubscriberDocument>,
@@ -49,7 +52,8 @@ export class MailController {
           template: "new-job",
           context: {
             receiver: subs.name,
-            jobs: jobs
+            jobs: jobs,
+            url: this.configService.get<string>("FRONTEND_URL") || 'http://localhost:3000'
           }
         });
 

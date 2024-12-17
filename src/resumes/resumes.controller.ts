@@ -32,6 +32,18 @@ export class ResumesController {
     return this.resumesService.findAll(+currentPage, +limit, qs);
   }
 
+  @Get('number-of-resumes')
+  @ResponseMessage("Get number of resumes")
+  getNumberOfResumes() {
+    return this.resumesService.getNumberOfResumes();
+  }
+
+  @Get('number-of-approved-resumes')
+  @ResponseMessage("Get number of approved resumes")
+  getNumberOfApprovedResumes() {
+    return this.resumesService.getNumberOfApprovedResumes();
+  }
+
   @Get('/employer')
   @ResponseMessage("Fetch list resume with paginate for Hr")
   findJobForHr(

@@ -27,6 +27,12 @@ export class CompaniesController {
     return this.companiesService.findAll(+currentPage, +limit, qs);
   }
 
+  @Get('number-of-companies')
+  @ResponseMessage("Get number of companies")
+  getNumberOfCompanies() {
+    return this.companiesService.getNumberOfCompanies();
+  }
+
   @Get(':id')
   @Public()
   findOne(@Param('id') id: string) {

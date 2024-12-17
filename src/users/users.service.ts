@@ -82,6 +82,11 @@ export class UsersService {
     }
   }
 
+  async getNumberOfUsers() {
+    const totalItems = (await this.userModel.find()).length;
+    return {totalItems};
+  }
+
   findOne(id: string) {
     if (!mongoose.Types.ObjectId.isValid(id))
       throw new BadGatewayException('Not found users')
