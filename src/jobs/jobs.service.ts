@@ -91,6 +91,11 @@ export class JobsService {
     }
   }
 
+  async getNumberOfJobs() {
+    const totalItems = (await this.jobModel.find()).length;
+    return {totalItems};
+  }
+
   // async findRelatedJob(qs: string) {
   //   const { filter, sort, population } = aqp(qs);
 

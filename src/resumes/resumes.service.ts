@@ -143,6 +143,17 @@ export class ResumesService {
     }
   }
 
+  async getNumberOfResumes() {
+    const totalItems = (await this.resumeModel.find()).length;
+    return {totalItems};
+  }
+
+  async getNumberOfApprovedResumes() {
+    const totalItems = (await this.resumeModel.find({ status: 'APPROVED' })).length;
+    return {totalItems};
+  }
+
+
   async findJobForHr(currentPage: number, limit: number, qs: string, hrId: string) {
     const { filter, sort, population, projection } = aqp(qs);
     delete filter.current;

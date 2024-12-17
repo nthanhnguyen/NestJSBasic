@@ -49,6 +49,12 @@ export class UsersController {
     return this.usersService.findAll(+currentPage, +limit, qs);
   }
 
+  @Get('number-of-users')
+  @ResponseMessage("Get number of users")
+  getNumberOfUsers() {
+    return this.usersService.getNumberOfUsers();
+  }
+
   @Public()
   @ResponseMessage("Fetch a user")
   @Get(':id')
