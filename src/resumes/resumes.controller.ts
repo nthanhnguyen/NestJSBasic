@@ -56,6 +56,24 @@ export class ResumesController {
     return this.resumesService.findJobForHr(+currentPage, +limit, qs, hrId);
   }
 
+  @Get('/employer/number-of-resumes')
+  @ResponseMessage("Get number of resumes for Hr")
+  getNumberOfResumesForHr(
+    @User() user: IUser, 
+  ) {
+    const hrId = user._id;
+    return this.resumesService.getNumberOfResumesForHr(hrId);
+  }
+
+  @Get('/employer/number-of-approved-resumes')
+  @ResponseMessage("Get number of approved resumes for Hr")
+  getNumberOfApprovedResumesForHr(
+    @User() user: IUser, 
+  ) {
+    const hrId = user._id;
+    return this.resumesService.getNumberOfApprovedResumesForHr(hrId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.resumesService.findOne(id);

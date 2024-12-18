@@ -153,6 +153,31 @@ export class ResumesService {
     return {totalItems};
   }
 
+  async getNumberOfResumesForHr(hrId: string) {
+    const hr = await this.userModel.findById(hrId);
+    if (!hr) {
+      throw new BadRequestException('Tài khoản không tồn tại!')
+    }
+    const companyId = hr?.company?._id;
+    if (!companyId) {
+      throw new BadRequestException('Công ty của người dùng không tồn tại!');
+    }
+    const totalItems = (await this.resumeModel.find({ companyId: companyId })).length;
+    return {totalItems};
+  }
+
+  async getNumberOfApprovedResumesForHr(hrId: string) {
+    const hr = await this.userModel.findById(hrId);
+    if (!hr) {
+      throw new BadRequestException('Tài khoản không tồn tại!')
+    }
+    const companyId = hr?.company?._id;
+    if (!companyId) {
+      throw new BadRequestException('Công ty của người dùng không tồn tại!');
+    }
+    const totalItems = (await this.resumeModel.find({ companyId: companyId, status: 'APPROVED' })).length;
+    return {totalItems};
+  }
 
   async findJobForHr(currentPage: number, limit: number, qs: string, hrId: string) {
     const { filter, sort, population, projection } = aqp(qs);

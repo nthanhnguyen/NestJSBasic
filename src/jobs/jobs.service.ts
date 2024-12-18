@@ -96,6 +96,20 @@ export class JobsService {
     return {totalItems};
   }
 
+  async getNumberOfJobsForHr(hrId: string) {
+    const hr = await this.userModel.findById(hrId);
+    if (!hr) {
+      throw new BadRequestException('Tài khoản không tồn tại!')
+    }
+    const companyId = hr?.company?._id;
+    if (!companyId) {
+      throw new BadRequestException('Công ty của người dùng không tồn tại!');
+    }
+    const totalItems = (await this.jobModel.find({ 'company._id': companyId })).length;
+    
+    return {totalItems};
+  }
+
   // async findRelatedJob(qs: string) {
   //   const { filter, sort, population } = aqp(qs);
 

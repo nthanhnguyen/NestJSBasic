@@ -87,6 +87,15 @@ export class JobsController {
     return this.jobsService.findJobForHr(+currentPage, +limit, qs, hrId);
   }
 
+  @Get('/employer/number-of-jobs')
+  @ResponseMessage("Get number of jobs for Hr")
+  getNumberOfJobsForHr(
+    @User() user: IUser, 
+  ) {
+    const hrId = user._id;
+    return this.jobsService.getNumberOfJobsForHr(hrId);
+  }
+
   @Get('/subscriber-job')
   @SkipCheckPermission()
   @ResponseMessage("Fetch list subscriber jobs")
