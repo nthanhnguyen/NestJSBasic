@@ -30,8 +30,8 @@ export class MailController {
   @Get()
   @Public()
   @ResponseMessage("Test email")
-  // @Cron('0 10 0 * * 0') // 0.10" am every Sunday
-  @Cron('*/15 * * * *') // Every 30 minutes
+  @Cron('0 10 0 * * 0') // 0.10" am every Sunday
+  // @Cron('*/60 * * * *') // Every 60 minutes
   async handleTestEmail() {
     const subscribers = await this.subscriberModel.find({});
     for (const subs of subscribers) {
