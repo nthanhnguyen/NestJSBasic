@@ -11,6 +11,8 @@ import { join } from 'path';
 import fs from "fs";
 import mammoth from 'mammoth';  // For handling docx files
 import pdfParse from 'pdf-parse'; 
+import { AIChatSession } from './ai.config';
+import { Job, JobDocument } from 'src/jobs/schemas/job.schema';
 
 @Injectable()
 export class ResumesService {
@@ -18,6 +20,8 @@ export class ResumesService {
   constructor(
       @InjectModel(Resume.name) private resumeModel: SoftDeleteModel<ResumeDocument>,
       @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
+      @InjectModel(Job.name) private jobModel: SoftDeleteModel<JobDocument>,
+
   ) { }
 
   async create(createUserCvDto: CreateUserCvDto, user: IUser) {
@@ -31,17 +35,32 @@ export class ResumesService {
     const fileExtension = url.split('.').pop()?.toLowerCase();
     if (fileExtension === 'pdf') {
       fileContent = await this.extractTextFromPDF(filePath);
-      // console.log('fileContent :>> ', fileContent);
     } else if (fileExtension === 'docx' || fileExtension === 'doc') {
       fileContent = await this.extractTextFromWord(filePath);
     } else {
       throw new Error('Unsupported file format');
     }
+    // console.log('fileContent :>> ', fileContent);
 
-    const cleanedText = this.cleanText(fileContent);
-    const skillsFound = this.countSkillsInText(cleanedText, skillList);
-    const totalSkills = skillList.length;
-    const relevancePercentage = (skillsFound / totalSkills) * 100;
+    const job = await this.jobModel.findById(jobId);
+
+    const promptTemplate = `Based on the Job description and the content of the CV provided on below, please indicate the level of suitability of the CV with that Job description. Only give a specific number from 1 to 100 and say nothing more. 
+    Job description: ${job.description} - end Job description. File content: ${fileContent}`;
+
+    const result = await AIChatSession.sendMessage(promptTemplate);
+
+    if (!result) {
+      throw new BadRequestException('Quá trình ứng tuyển có lỗi xảy ra, vui lòng thử lại!');
+    }
+    const parsedResult = JSON.parse(await result.response.text());
+    console.log('parsedResult for creating:>> ', parsedResult);
+
+    // const cleanedText = this.cleanText(fileContent);
+    // const skillsFound = this.countSkillsInText(cleanedText, skillList);
+    // const totalSkills = skillList.length;
+    // const relevancePercentage = (skillsFound / totalSkills) * 100;
+    const relevancePercentage = parsedResult.suitability_score;
+
 
     const newCV = await this.resumeModel.create({
       url,
@@ -90,29 +109,29 @@ export class ResumesService {
     });
   }
 
-  private cleanText(text: string): string {
-    // Replace multiple spaces with a single space, remove newlines, and trim leading/trailing spaces
-    let cleanedText = text.replace(/\s+/g, ' ').replace(/\n/g, ' ').trim().toLowerCase();
+  // private cleanText(text: string): string {
+  //   // Replace multiple spaces with a single space, remove newlines, and trim leading/trailing spaces
+  //   let cleanedText = text.replace(/\s+/g, ' ').replace(/\n/g, ' ').trim().toLowerCase();
 
-    // cleanedText = cleanedText.replace(/([a-zA-Z0-9])\s+([a-zA-Z0-9])/g, '$1$2');
+  //   // cleanedText = cleanedText.replace(/([a-zA-Z0-9])\s+([a-zA-Z0-9])/g, '$1$2');
 
-    return cleanedText;
-  }
+  //   return cleanedText;
+  // }
 
-  private countSkillsInText(text: string, skillsArray: string[]): number {
-    // console.log('cleaned text with spaces :>> ', text);
-    let skillsFound = 0;
+  // private countSkillsInText(text: string, skillsArray: string[]): number {
+  //   // console.log('cleaned text with spaces :>> ', text);
+  //   let skillsFound = 0;
 
-    // Check each skill in the array and see if it exists in the cleaned text
-    skillsArray.forEach(skill => {
-      const regex = new RegExp(`\\b${skill.toLowerCase()}\\b`, 'gi'); // Create a case-insensitive regex
-      if (regex.test(text)) {
-        skillsFound++;
-      }
-    });
+  //   // Check each skill in the array and see if it exists in the cleaned text
+  //   skillsArray.forEach(skill => {
+  //     const regex = new RegExp(`\\b${skill.toLowerCase()}\\b`, 'gi'); // Create a case-insensitive regex
+  //     if (regex.test(text)) {
+  //       skillsFound++;
+  //     }
+  //   });
 
-    return skillsFound;
-  }
+  //   return skillsFound;
+  // }
 
   async findAll(currentPage: number, limit: number, qs: string) {
     const { filter, sort, population, projection } = aqp(qs);
@@ -156,7 +175,7 @@ export class ResumesService {
   async getNumberOfResumesForHr(hrId: string) {
     const hr = await this.userModel.findById(hrId);
     if (!hr) {
-      throw new BadRequestException('Tài khoản không tồn tại!')
+      throw new BadRequestException('Tài khoản không tồn tại!');
     }
     const companyId = hr?.company?._id;
     if (!companyId) {
@@ -271,10 +290,26 @@ export class ResumesService {
       throw new Error('Unsupported file format');
     }
 
-    const cleanedText = this.cleanText(fileContent);
-    const skillsFound = this.countSkillsInText(cleanedText, skillList);
-    const totalSkills = skillList.length;
-    const relevancePercentage = (skillsFound / totalSkills) * 100;
+    const oldResume =  await this.resumeModel.findById(_id);
+    const job = await this.jobModel.findById(oldResume.jobId);
+
+    const promptTemplate = `Based on the Job description and the content of the CV provided on below, please indicate the level of suitability of the CV with that Job description. Only give a specific number from 1 to 100 and say nothing more. 
+    Job description: ${job.description} - end Job description. File content: ${fileContent}`;
+
+    const result = await AIChatSession.sendMessage(promptTemplate);
+
+    if (!result) {
+      throw new BadRequestException('Quá trình ứng tuyển có lỗi xảy ra, vui lòng thử lại!');
+    }
+    const parsedResult = JSON.parse(await result.response.text());
+    console.log('parsedResult for update:>> ', parsedResult);
+
+    const relevancePercentage = parsedResult.suitability_score;
+
+    // const cleanedText = this.cleanText(fileContent);
+    // const skillsFound = this.countSkillsInText(cleanedText, skillList);
+    // const totalSkills = skillList.length;
+    // const relevancePercentage = (skillsFound / totalSkills) * 100;
 
     const updated = await this.resumeModel.updateOne(
       { _id },
